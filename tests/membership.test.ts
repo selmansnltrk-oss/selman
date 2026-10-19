@@ -335,6 +335,23 @@ describe("Sunucu OAuth, oturum ve doğrulama", () => {
       await new Promise<void>((r) => server.close(() => r()));
     }
   });
+  it("Render origin ve PORT kullanır, açık origin önceliklidir", () => {
+    const env = {
+      WIX_CLIENT_ID: "7b23a54e-e11b-4d43-b738-e5704e8723e6",
+      WIX_SITE_ID: "ece5420a-0b61-4879-8872-0e899f7628b5",
+      SERVER_DATA_KEY: randomBytes(32).toString("base64"),
+      RENDER_EXTERNAL_URL: "https://render-test.example",
+      PORT: "10000",
+      DATABASE_PATH: ":memory:",
+    };
+    const config = loadConfig(env);
+    expect(config.HOST).toBe("0.0.0.0");
+    expect(config.PORT).toBe(10000);
+    expect(config.callback).toBe("https://render-test.example/auth/callback");
+    expect(loadConfig({ ...env, PUBLIC_ORIGIN: "https://custom.example" }).callback)
+      .toBe("https://custom.example/auth/callback");
+    expect(() => loadConfig({ ...env, RENDER_EXTERNAL_URL: "http://render-test.example" })).toThrow();
+  });
   it("üretimde eksik kimlik bilgilerini ve HTTP originini reddeder", () => {
     expect(() => loadConfig({})).toThrow();
     expect(() =>

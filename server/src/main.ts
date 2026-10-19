@@ -25,7 +25,7 @@ try {
   process.once("SIGINT", stop);
 } catch {
   console.error(
-    "Backend başlatılamadı. .env içindeki WIX_CLIENT_ID, PUBLIC_ORIGIN ve SERVER_DATA_KEY ayarlarını kontrol edin. Gizli değerleri paylaşmayın.",
+    "Backend başlatılamadı. ortam değişkenlerindeki WIX_CLIENT_ID, PUBLIC_ORIGIN (Render: RENDER_EXTERNAL_URL) ve SERVER_DATA_KEY ayarlarını kontrol edin. Gizli değerleri paylaşmayın.",
   );
   process.exitCode = 1;
 }

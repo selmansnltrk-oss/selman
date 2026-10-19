@@ -2,7 +2,7 @@ import { z } from "zod";
 import { SITE_ID } from "./policy.js";
 const schema = z.object({
   NODE_ENV: z.enum(["production", "development", "test"]).default("production"),
-  HOST: z.string().default("127.0.0.1"),
+  HOST: z.string().default("0.0.0.0"),
   PORT: z.coerce.number().int().min(1).max(65535).default(8787),
   PUBLIC_ORIGIN: z.url(),
   WIX_CLIENT_ID: z.uuid(),
@@ -19,7 +19,10 @@ const schema = z.object({
   ALLOW_LOCAL_HTTP: z.enum(["true", "false"]).default("false"),
 });
 export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
-  const p = schema.parse(env),
+  const p = schema.parse({
+    ...env,
+    PUBLIC_ORIGIN: env.PUBLIC_ORIGIN?.trim() || env.RENDER_EXTERNAL_URL?.trim(),
+  }),
     origin = new URL(p.PUBLIC_ORIGIN);
   if (origin.origin !== p.PUBLIC_ORIGIN.replace(/\/$/, ""))
     throw Error("PUBLIC_ORIGIN yalnızca kök origin olmalı");

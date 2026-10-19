@@ -4,7 +4,7 @@ Küçük işletmeler için Türkçe, çevrimdışı gelir–gider ve **tahmini i
 
 ## Wix entegrasyonu geliştirme dalı
 
-Bu daldaki sürüm Wix üyelik kontrolü içerir. **Canlı Wix bağlantısı henüz kurulmadı; varsayılan durumda uygulama finans ekranlarını açmaz.** Mevcut aboneliksiz çalışan sürüm `main` dalındadır. Kurulumdan önce mevcut uygulamanızdan yedek alın. OAuth Client ID ve gerçek backend hosting adresi sağlandıktan sonra canlı doğrulama yapılacaktır.
+Bu daldaki sürüm Wix üyelik kontrolü içerir. **Canlı Wix bağlantısı henüz kurulmadı; varsayılan durumda uygulama finans ekranlarını açmaz.** Render backend kurulumu için [Render yönergesini](docs/RENDER_DEPLOY.md) izleyin. Kurulumdan önce mevcut uygulamanızdan yedek alın. OAuth Client ID tanımlıdır; gerçek backend hosting adresi sağlandıktan sonra canlı doğrulama yapılacaktır.
 
 Giriş akışı, güvenlik tasarımı, incelenen resmi SDK belgeleri, ortam değişkenleri ve Wix’te yapılacak ilk işlem için [Wix entegrasyon kılavuzunu](docs/WIX_INTEGRATION.md) okuyun. Sunucu sırları yalnızca `server/.env`/hosting secret manager içinde tutulur; uygulamaya gömülmez. Aşağıdaki eski çevrimdışı kullanım açıklamaları artık yalnızca finans verilerinin yerel tutulmasını ifade eder; giriş ve düzenli abonelik kontrolü internet gerektirir.
 

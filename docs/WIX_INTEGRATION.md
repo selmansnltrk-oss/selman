@@ -2,7 +2,7 @@
 
 ## Durum
 
-Kod ve test altyapısı hazırdır. **Canlı Wix giriş/abonelik doğrulaması yapılmadı.** OAuth Client ID kullanıcı tarafından sağlandı ve sunucu ortam ayarlarına eklendi. HTTPS backend adresi henüz belirlenmedi; callback domaini uydurulmadı. Varsayılan üretim derlemesi finans ekranlarını kilitler. Çalışan aboneliksiz 1.2 sürümüne devam etmek için `main` dalını kullanın; Wix entegrasyonu ayrı geliştirme dalındadır.
+Kod ve test altyapısı hazırdır. **Canlı Wix giriş/abonelik doğrulaması yapılmadı.** OAuth Client ID kullanıcı tarafından sağlandı ve sunucu ortam ayarlarına eklendi. HTTPS backend adresi henüz belirlenmedi; callback domaini uydurulmadı. Varsayılan üretim derlemesi finans ekranlarını kilitler. Entegrasyon `main` dalındadır. Render kurulumu: [Render yönergesi](RENDER_DEPLOY.md).
 
 Bu entegrasyon eski uygulamayı yeniden oluşturmaz. React finans ekranları, kuruş tabanlı hesap/vergi motorları ve SQLite şeması aynı kalır. Giriş kontrolü onların dışına, finans verisi yetkilendirmesi Electron ana sürecine eklenir. Sunucu, finans kayıtlarını almaz.
 
@@ -82,7 +82,7 @@ Başlangıçta, iki dakikada bir ve uyku dönüşünde backend kontrol edilir. V
 
 ## Backend’i kurma
 
-Node.js **24** gereklidir. Backend’i mevcut Wix sitesinden ayrı, kalıcı disk ve HTTPS reverse proxy sunabilen bir hostta çalıştırın. Geçici/sunucusuz dosya sisteminde bu SQLite oturum deposunu dağıtmayın.
+Node.js **24** gereklidir. Backend’i mevcut Wix sitesinden ayrı, kalıcı disk ve HTTPS reverse proxy sunabilen bir hostta çalıştırın. Kalıcı oturumlar için kalıcı disk gerekir. Render ücretsiz planda `DATABASE_PATH=:memory:` ile geçici oturumlar kullanılabilir; yeniden başlatmada kullanıcı yeniden giriş yapar. Ayrıntılar: [Render](RENDER_DEPLOY.md).
 
 ```sh
 cd server
@@ -90,7 +90,7 @@ npm ci
 # server/.env.example içeriğini server/.env dosyasına kopyalayın.
 # WIX_CLIENT_ID, PUBLIC_ORIGIN ve SERVER_DATA_KEY değerlerini gerçek yapılandırmayla doldurun.
 npm run build
-npm start
+npm run start:local
 ```
 
 `SERVER_DATA_KEY`, hostun secret manager’ında saklanacak 32 bayt base64 anahtardır. Yerel olarak kendiniz üretmek için:
