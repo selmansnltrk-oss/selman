@@ -1,0 +1,68 @@
+{
+  "name": "defter-mini",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "npm run build:model && tsc -b && vite build",
+    "test": "vitest run tests",
+    "desktop": "npm run build && electron .",
+    "desktop:dev": "npm run build:model && concurrently -k \"vite --host 0.0.0.0\" \"wait-on http://localhost:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
+    "dist:win": "npm run build && electron-builder --win nsis",
+    "dist:linux": "npm run build && electron-builder --linux dir",
+    "test:e2e": "playwright test",
+    "build:model": "esbuild src/model.ts --bundle --platform=node --format=cjs --outfile=electron/model.cjs",
+    "test:desktop": "node scripts/desktop-smoke.cjs",
+    "format": "prettier --write src electron tests e2e scripts *.ts *.json index.html README.md"
+  },
+  "dependencies": {
+    "lucide-react": "^0.468.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "recharts": "^3.3.0",
+    "sql.js": "^1.13.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@tailwindcss/vite": "^4.1.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@types/sql.js": "^1.4.9",
+    "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^9.2.0",
+    "cross-env": "^10.1.0",
+    "electron": "^39.0.0",
+    "electron-builder": "^26.0.12",
+    "esbuild": "^0.28.2",
+    "prettier": "^3.9.10",
+    "tailwindcss": "^4.1.0",
+    "typescript": "~5.9.3",
+    "vite": "^7.1.0",
+    "vitest": "^3.2.0",
+    "wait-on": "^9.0.0"
+  },
+  "build": {
+    "appId": "com.deftermini.desktop",
+    "productName": "Defter Mini",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "node_modules/sql.js/dist/sql-wasm.*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "description": "İşletmeler için çevrimdışı günlük gelir, gider ve tahmini kâr takibi"
+}
