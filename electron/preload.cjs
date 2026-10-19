@@ -8,3 +8,16 @@ contextBridge.exposeInMainWorld("defter", {
   backup: () => ipcRenderer.invoke("backup"),
   restore: () => ipcRenderer.invoke("restore"),
 });
+
+contextBridge.exposeInMainWorld("defterMembership", {
+  state: () => ipcRenderer.invoke("membership:state"),
+  login: () => ipcRenderer.invoke("membership:login"),
+  check: () => ipcRenderer.invoke("membership:check"),
+  logout: () => ipcRenderer.invoke("membership:logout"),
+  website: () => ipcRenderer.invoke("membership:website"),
+  subscribe: (callback) => {
+    const handler = (_event, value) => callback(value);
+    ipcRenderer.on("membership:changed", handler);
+    return () => ipcRenderer.removeListener("membership:changed", handler);
+  },
+});

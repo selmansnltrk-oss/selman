@@ -8,3 +8,9 @@ release/
 test-results/
 playwright-report/
 electron/model.cjs
+.env.*
+!.env.example
+!**/.env.example
+server/data/
+server/dist/
+electron/membership-config.json

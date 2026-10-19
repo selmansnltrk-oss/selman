@@ -2,11 +2,17 @@
 
 Küçük işletmeler için Türkçe, çevrimdışı gelir–gider ve **tahmini işletme sonucu** takibi. Electron + React + TypeScript + Tailwind CSS + SQLite (sql.js) + Recharts.
 
+## Wix entegrasyonu geliştirme dalı
+
+Bu daldaki sürüm Wix üyelik kontrolü içerir. **Canlı Wix bağlantısı henüz kurulmadı; varsayılan durumda uygulama finans ekranlarını açmaz.** Mevcut aboneliksiz çalışan sürüm `main` dalındadır. Kurulumdan önce mevcut uygulamanızdan yedek alın. OAuth Client ID ve gerçek backend hosting adresi sağlandıktan sonra canlı doğrulama yapılacaktır.
+
+Giriş akışı, güvenlik tasarımı, incelenen resmi SDK belgeleri, ortam değişkenleri ve Wix’te yapılacak ilk işlem için [Wix entegrasyon kılavuzunu](docs/WIX_INTEGRATION.md) okuyun. Sunucu sırları yalnızca `server/.env`/hosting secret manager içinde tutulur; uygulamaya gömülmez. Aşağıdaki eski çevrimdışı kullanım açıklamaları artık yalnızca finans verilerinin yerel tutulmasını ifade eder; giriş ve düzenli abonelik kontrolü internet gerektirir.
+
 ## Hızlı başlangıç
 
 Windows’ta Node.js 24 LTS kurulduktan sonra **BASLAT.cmd** dosyasına çift tıklayabilirsiniz. İlk kurulum internet gerektirir. Bu başlatıcı npm sürümlerinin atladığı Electron ve esbuild kurulum adımlarını da çalıştırır.
 
-Terminalden çalıştırmak için Node.js 22.12+ veya 24 LTS ve npm gerekir. Mevcut depoda çalışın; bu bulut ortamı zaten yalıtılmıştır, ayrıca Git worktree oluşturmayın.
+Terminalden çalıştırmak için Node.js 24 LTS ve npm gerekir. Mevcut depoda çalışın; bu bulut ortamı zaten yalıtılmıştır, ayrıca Git worktree oluşturmayın.
 
 ```sh
 npm ci
@@ -31,7 +37,7 @@ npm test
 npm run dist:win
 ```
 
-NSIS kurulum dosyası `release/Defter Mini Setup 1.2.0.exe` altında oluşur. Bu bulut çalışmasında Windows kurulum dosyası üretilmedi; Linux dizin paketi ve Linux Electron çalışma akışı doğrulandı. Windows'ta kurulum/kaldırma, güncelleme ve SmartScreen davranışı ayrıca test edilmelidir. Dağıtım imzası/sertifikası bu sürümde yapılandırılmadı. Uygulama verileri kurulum dizininde tutulmaz; güncellemeler kullanıcı veritabanının üzerine yazmaz. Programı güncellemeden önce yedek alın.
+NSIS kurulum dosyası `release/Defter Mini Setup 1.3.0.exe` altında oluşur. Bu bulut çalışmasında Windows kurulum dosyası üretilmedi; Linux dizin paketi ve Linux Electron çalışma akışı doğrulandı. Windows'ta kurulum/kaldırma, güncelleme ve SmartScreen davranışı ayrıca test edilmelidir. Dağıtım imzası/sertifikası bu sürümde yapılandırılmadı. Uygulama verileri kurulum dizininde tutulmaz; güncellemeler kullanıcı veritabanının üzerine yazmaz. Programı güncellemeden önce yedek alın.
 
 ## Kullanım
 
@@ -60,16 +66,16 @@ NSIS kurulum dosyası `release/Defter Mini Setup 1.2.0.exe` altında oluşur. Bu
 - `electron/storage.cjs`: parametreli SQLite sorguları, atomik geçici dosya + yeniden adlandırma, başarısız yazmada bellek durumunu geri alma.
 - Windows veritabanı: `%APPDATA%/defter-mini/defter-mini.sqlite` (Electron `app.getPath('userData')`). JSON yedekleri taşınabilir uygulama yedeğidir; canlı SQLite dosyasını elle düzenlemeyin.
 - `src/storage.ts`: masaüstünde IPC'yi kullanır. Tarayıcı demosunda sql.js SQLite dosyası localStorage'a kaydedilir. Tarayıcı depolama kotası/silinmesi riski vardır; kalıcı işletme kullanımı için masaüstünü ve düzenli yedeklemeyi tercih edin.
-- İnternet uygulamanın günlük kullanımı için gerekmez; yazı tipleri, grafikler, SQLite WASM ve uygulama varlıkları pakettedir. Ağ yalnızca geliştirme bağımlılıklarını indirmek için gerekir.
-- Üyelik, lisans ve ödeme servisi yoktur; veri erişimi arayüzünün arkasına gelecekte ayrı modül eklenebilir.
+- Finans varlıkları yereldir; üyelik girişi ve düzenli doğrulama internet gerektirir; yazı tipleri, grafikler, SQLite WASM ve uygulama varlıkları pakettedir. Ağ yalnızca geliştirme bağımlılıklarını indirmek için gerekir.
+- Bu geliştirme dalı ayrı bir Wix üyelik backend’i kullanır. Ödeme uygulamada alınmaz; Wix web sitesinde gerçekleşir. Canlı bağlantı beklenmektedir.
 
 ## Doğrulama
 
 ```sh
-npm test               # 38 hesaplama, vergi ve SQLite testi
+npm test               # Finans + vergi + SQLite + üyelik güvenlik testleri
 npm run build          # ortak model, TypeScript ve üretim varlıkları
-npm run test:e2e       # 3 gerçek tarayıcı iş akışı testi
-npm run test:desktop   # üretim derlemesinde Electron/IPC/kapanıp açılma kontrolü
+npm run test:e2e       # Üyelik kilidi + mevcut finans iş akışları
+npm run test:desktop   # Electron üyelik kilidi, IPC engeli, SQLite koruma
 ```
 
 Tarayıcı testleri sistemde `/usr/bin/chromium` varsa kullanır; başka sistemlerde önce `npx playwright install chromium` çalıştırın. `PLAYWRIGHT_EXECUTABLE_PATH` ile kurulu Chromium yolu verilebilir. Masaüstü testi grafik ekran gerektirir; Linux'ta DISPLAY veya sanal X ekranı gerekir. Test ayrı geçici kullanıcı veri dizininde çalışır, kişisel kayıtları kullanmaz. Linux CI için `CI=1` yalnızca test başlatıcısına `--no-sandbox` ekler; uygulamanın BrowserWindow sandbox ayarı açık kalır. Normal kullanımda bu bayrağı eklemeyin.

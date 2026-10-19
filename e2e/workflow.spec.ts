@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 test("günlük giriş, hesaplama, SQLite kaydı, düzenleme, filtre, yeniden açma ve yedek", async ({
   page,
 }) => {

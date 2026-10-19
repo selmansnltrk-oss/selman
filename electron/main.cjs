@@ -1,7 +1,16 @@
-const { app, BrowserWindow, ipcMain, dialog } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  ipcMain,
+  dialog,
+  safeStorage,
+  shell,
+  powerMonitor,
+} = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
 const { openStore } = require("./storage.cjs");
+const { createMembership } = require("./membership.cjs");
 // Explicit isolated data directory for cross-platform integration testing.
 const dataArgument = process.argv.find((arg) =>
   arg.startsWith("--defter-data-dir="),
@@ -13,7 +22,7 @@ if (dataArgument) {
   fs.mkdirSync(dataPath, { recursive: true });
   app.setPath("userData", dataPath);
 }
-let store, win;
+let store, win, membership;
 app.whenReady().then(async () => {
   store = await openStore(
     path.join(app.getPath("userData"), "defter-mini.sqlite"),
@@ -41,13 +50,14 @@ app.whenReady().then(async () => {
       days: z.array(day).max(50000),
     })
     .refine((b) => new Set(b.days.map((d) => d.date)).size === b.days.length);
-  function handle(name, fn) {
+  function handle(name, fn, protectedData = true) {
     ipcMain.handle(name, async (event, ...args) => {
       if (
         event.sender !== win.webContents ||
         event.senderFrame !== win.webContents.mainFrame
       )
         throw Error("İzin verilmeyen istek");
+      if (protectedData) await membership.assertAccess();
       return fn(...args);
     });
   }
@@ -75,6 +85,7 @@ app.whenReady().then(async () => {
       message: "Bu günün kaydı kalıcı olarak silinsin mi?",
     });
     if (r.response !== 1) return false;
+    await membership.assertAccess();
     const b = JSON.parse(store.backup());
     b.days = b.days.filter((x) => x.date !== d);
     store.restore(b);
@@ -86,6 +97,7 @@ app.whenReady().then(async () => {
       filters: [{ name: "Defter Mini yedeği", extensions: ["json"] }],
     });
     if (r.canceled) return false;
+    await membership.assertAccess();
     fs.writeFileSync(r.filePath, store.backup(), "utf8");
     return true;
   });
@@ -108,6 +120,7 @@ app.whenReady().then(async () => {
         "Mevcut veriler yedekteki verilerle değiştirilecek. Devam edilsin mi?",
     });
     if (c.response !== 1) return false;
+    await membership.assertAccess();
     fs.writeFileSync(
       path.join(app.getPath("userData"), "geri-yukleme-oncesi.json"),
       store.backup(),
@@ -130,6 +143,24 @@ app.whenReady().then(async () => {
       sandbox: true,
     },
   });
+  membership = createMembership({
+    safeStorage,
+    userData: app.getPath("userData"),
+    openExternal: (url) => shell.openExternal(url),
+    onChange: (value) => {
+      if (!win.isDestroyed()) win.webContents.send("membership:changed", value);
+    },
+  });
+  handle("membership:state", () => membership.getState(), false);
+  handle("membership:login", () => membership.login(), false);
+  handle("membership:check", () => membership.check(), false);
+  handle("membership:logout", () => membership.logout(), false);
+  handle("membership:website", () => membership.openWebsite(), false);
+  powerMonitor.on("resume", () => void membership.check());
+  win.on("focus", () => {
+    if (!membership.allowed()) void membership.check();
+  });
+  win.on("closed", () => membership.stop());
   win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
   win.webContents.on("will-navigate", (event, url) => {
     const allowed = process.env.VITE_DEV_SERVER_URL;
@@ -146,6 +177,7 @@ app.whenReady().then(async () => {
       },
     }),
   );
+  await membership.initialize();
   if (process.env.VITE_DEV_SERVER_URL)
     await win.loadURL(process.env.VITE_DEV_SERVER_URL);
   else await win.loadFile(path.join(__dirname, "../dist/index.html"));
