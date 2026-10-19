@@ -2,11 +2,11 @@
 
 ## Durum
 
-Kod ve test altyapısı hazırdır. **Canlı Wix giriş/abonelik doğrulaması yapılmadı.** OAuth Client ID ve HTTPS backend adresi sağlanmadı; bu değerler uydurulmadı. Varsayılan üretim derlemesi finans ekranlarını kilitler. Çalışan aboneliksiz 1.2 sürümüne devam etmek için `main` dalını kullanın; Wix entegrasyonu ayrı geliştirme dalındadır.
+Kod ve test altyapısı hazırdır. **Canlı Wix giriş/abonelik doğrulaması yapılmadı.** OAuth Client ID kullanıcı tarafından sağlandı ve sunucu ortam ayarlarına eklendi. HTTPS backend adresi henüz belirlenmedi; callback domaini uydurulmadı. Varsayılan üretim derlemesi finans ekranlarını kilitler. Çalışan aboneliksiz 1.2 sürümüne devam etmek için `main` dalını kullanın; Wix entegrasyonu ayrı geliştirme dalındadır.
 
 Bu entegrasyon eski uygulamayı yeniden oluşturmaz. React finans ekranları, kuruş tabanlı hesap/vergi motorları ve SQLite şeması aynı kalır. Giriş kontrolü onların dışına, finans verisi yetkilendirmesi Electron ana sürecine eklenir. Sunucu, finans kayıtlarını almaz.
 
-## Wix tarafında ilk işlem: bu site için OAuth uygulaması
+## Wix OAuth uygulaması ve mevcut istemci
 
 1. Wix Dashboard’da **Defter Mini** sitesini açın. Site ID: `ece5420a-0b61-4879-8872-0e899f7628b5`.
 2. Dashboard **Settings → Headless Settings → OAuth apps** bölümünü arayın. Arayüz dilinize göre **Ayarlar → Headless ayarları → OAuth uygulamaları** olarak görünebilir. Menüde bulunmuyorsa dashboard aramasında `Headless` veya `OAuth` arayın. Wix arayüzünün bu sitede hangi seçenekleri gösterdiği henüz doğrulanmadı; **Members/Site Üyeleri** listesi veya **Wix App Market developer app** kimliği bu client değildir.
@@ -14,9 +14,25 @@ Bu entegrasyon eski uygulamayı yeniden oluşturmaz. React finans ekranları, ku
 4. **Client ID** değerini alın. Client ID genel kimlik bilgisidir; gizli API anahtarı veya kullanıcı şifresi değildir.
 5. Gerçek HTTPS backend adresi kararlaştırıldıktan sonra aynı OAuth uygulamasında yetkili yönlendirme adresini **`<PUBLIC_ORIGIN>/auth/callback`** olarak ekleyeceğiz. Şimdilik gerçek olmayan bir callback adresi girmeyin. SDK’nın Redirects giriş akışında istenen izinli origin/post-flow adreslerine de aynı gerçek backend origin/callback adresi eklenecek.
 
-İlk olarak yalnızca **OAuth Client ID** gerekir. Hosting adresi, callback ve sunucu anahtarı sonraki kurulum adımlarıdır. Yönetici API anahtarı bu çözümde kullanılmaz; istenmemelidir. Gizli değerleri sohbet yerine hosting sağlayıcısının secret/env ayarlarına girin.
+**Client ID tamamlandı:** `7b23a54e-e11b-4d43-b738-e5704e8723e6`. `server/.env` ve `server/.env.example` içinde `WIX_CLIENT_ID` olarak ayarlandı. Masaüstü yalnızca backend originini kullanır; bu Client ID’nin Electron ortamına eklenmesi gerekmez. Hosting adresi, callback ve sunucu anahtarı sonraki kurulum adımlarıdır. Yönetici API anahtarı bu çözümde kullanılmaz; istenmemelidir. Gizli değerleri sohbet yerine hosting sağlayıcısının secret/env ayarlarına girin.
 
 Wix’in standart site hesabıyla giriş yapıldığı ve Pricing Plans siparişlerinin aynı site/OAuth client kapsamından döndüğü ilk canlı doğrulamada kontrol edilecek. Bu sitede Headless/OAuth seçeneği yoksa farklı uygulama kimliğiyle devam etmeyin; Wix’in siteye sunduğu güncel Headless veya Velo seçeneği ayrıca değerlendirilmelidir.
+
+## Wix’teki üç alanın mevcut kodla ilişkisi
+
+Henüz gerçek bir `PUBLIC_ORIGIN` tanımlanmadı. Dolayısıyla kesin bir tam callback URL’si yoktur. `server/src/config.ts` ve `server/src/service.ts`, callback’i `PUBLIC_ORIGIN + "/auth/callback"` olarak oluşturur. `server/src/http.ts` yalnızca bu `/auth/callback` yolunu karşılar; Wix web sitesi bu Node endpoint’ini kendiliğinden barındırmaz.
+
+| Wix alanı                                       | Mevcut akışta gereklilik                                                                                                                                                                                     | Girilecek değer / mevcut durum                                                                                                                                                                          |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| İzin verilen yönlendirme domainleri             | Kodda genel `callbacks.postFlowUrl`, checkout veya özel dönüş sayfası kullanılmıyor. Bu akışta ayrıca böyle bir domain gereksinimi oluşturulmadı; OAuth callback’i aşağıdaki URI listesiyle yetkilendirilir. | Şimdilik ek domain girmeyin. Hosting seçildiğinde bu alan da kullanılacaksa yalnızca gerçek dönüş sunucusunun hostname’i eklenir; henüz belirlenmedi.                                                   |
+| İzin verilen yetkilendirme yönlendirme URI’leri | **OAuth girişi için gerekli.**                                                                                                                                                                               | Gerçek backend HTTPS origininin sonuna **`/auth/callback`** eklenmiş tam URL. `PUBLIC_ORIGIN` boş olduğu için şu anda Wix’e yapıştırılacak kesin URL üretilemez. Şablonu literal değer olarak girmeyin. |
+| Giriş URL’si                                    | **Mevcut hosted giriş akışında gerekli değil.**                                                                                                                                                              | **Boş bırakın.** Özel login sayfası geliştirilmiyor; Wix’in hazır giriş sayfası kullanılıyor. `/auth/start/<id>` her denemede değişir ve bu alana yazılacak sabit giriş URL’si değildir.                |
+
+Resmi Redirects SDK’sındaki `CallbackParams.loginUrl` açıklaması: “The URL for a custom login page implemented outside of Wix. Default: If you don't specify a URL, a Wix login page is used.” Aynı tipte `postFlowUrl` açıklaması auth yönlendirmesinde bunun yerine `options.auth.authRequest.redirectUri` kullanılmasını söyler. `server/src/wix.ts` resmi `getAuthUrl` akışını kullanır; bu özel callback/login alanlarını göndermemektedir.
+
+**İstemci gizli anahtarı gerekmez.** SDK `OAuthStrategy({clientId})` ve authorization-code/S256 PKCE kullanır; mevcut token değişiminde `clientSecret` parametresi yoktur. `SERVER_DATA_KEY` ise sunucu SQLite oturumlarını şifrelemek için sonradan üretilecek ayrı bir anahtardır; Wix Client Secret değildir. Yönetici API anahtarı da kullanılmaz.
+
+Sonraki gerekli bilgi, backend’in çalışacağı gerçek HTTPS hosting adresidir. Backend, `www.deftermini.com` altında fiilen yayımlanıp `/auth/callback` isteği bu servise yönlendirilmeden o domaini callback olarak kullanmayın.
 
 ## İncelenen güncel resmi API yüzeyi
 
