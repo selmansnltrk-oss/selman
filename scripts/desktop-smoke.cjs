@@ -9,6 +9,7 @@ const path = require("node:path");
     electron.launch({
       executablePath: process.env.DEFTER_EXECUTABLE || require("electron"),
       args: [
+        `--defter-data-dir=${path.join(config, "data")}`,
         ...(process.env.DEFTER_EXECUTABLE ? [] : ["."]),
         ...(process.env.CI ? ["--no-sandbox"] : []),
       ],
@@ -54,6 +55,18 @@ const path = require("node:path");
       }
     });
     if (!invalidRejected) throw Error("IPC hatalı tutarı reddetmedi");
+    await page.evaluate(async () => {
+      const [d] = await window.defter.listDays();
+      d.tax.enabled = true;
+      d.tax.confirmed = true;
+      d.tax.method = "corporate";
+      d.tax.vatDefault = 2000;
+      d.taxPaid = 500;
+      await window.defter.saveDay(d, true);
+      const [saved] = await window.defter.listDays();
+      if (!saved.tax.confirmed || saved.taxPaid !== 500)
+        throw Error("Vergi profili IPC ile saklanmadı");
+    });
     const backupFile = path.join(config, "desktop-backup.json");
     await app.evaluate(({ dialog }, file) => {
       dialog.showSaveDialog = async () => ({ canceled: false, filePath: file });

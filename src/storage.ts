@@ -140,13 +140,7 @@ export async function connect(): Promise<API> {
             }
             if (f.size > 50 * 1024 * 1024) throw Error("Yedek çok büyük");
             const data = backupSchema.parse(JSON.parse(await f.text()));
-            data.days.forEach((d) => {
-              if (
-                d.pos.reduce((a, p) => a + p.amount, 0) >
-                d.incomes.reduce((a, i) => a + i.amount, 0)
-              )
-                throw Error("Yedekte geçersiz POS tutarı var");
-            });
+            data.days.forEach((d) => calculate(d));
             if (
               !confirm(
                 "Mevcut veriler değiştirilecek. Önce yedek aldığınızdan emin olun. Devam edilsin mi?",

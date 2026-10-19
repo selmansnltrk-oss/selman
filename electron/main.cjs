@@ -2,6 +2,17 @@ const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
 const { openStore } = require("./storage.cjs");
+// Explicit isolated data directory for cross-platform integration testing.
+const dataArgument = process.argv.find((arg) =>
+  arg.startsWith("--defter-data-dir="),
+);
+if (dataArgument) {
+  const dataPath = path.resolve(
+    dataArgument.slice("--defter-data-dir=".length),
+  );
+  fs.mkdirSync(dataPath, { recursive: true });
+  app.setPath("userData", dataPath);
+}
 let store, win;
 app.whenReady().then(async () => {
   store = await openStore(
@@ -14,11 +25,14 @@ app.whenReady().then(async () => {
     dateSchema: date,
     calculate,
   } = require("./model.cjs");
-  const day = daySchema.refine(
-    (d) =>
-      d.pos.reduce((a, p) => a + p.amount, 0) <=
-      d.incomes.reduce((a, i) => a + i.amount, 0),
-  );
+  const day = daySchema.refine((d) => {
+    try {
+      calculate(d);
+      return true;
+    } catch {
+      return false;
+    }
+  }, "Geçersiz günlük hesap");
   const backup = z
     .object({
       format: z.literal("defter-mini"),

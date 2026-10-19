@@ -40,6 +40,9 @@ import {
   CartesianGrid,
 } from "recharts";
 import { connect, type API } from "./storage";
+import { MoneyInput, RateInput } from "./fields";
+import { taxProfile, taxLedger } from "./tax";
+import { TaxSettingsCard, DayTaxInputs, TaxSummary, TaxReport } from "./TaxUI";
 import {
   defaults,
   newDay,
@@ -48,7 +51,7 @@ import {
   humanDate,
   today,
   uid,
-  parseMoney,
+  applySettingsToDay,
   settingsSchema,
   type Settings,
   type Day,
@@ -57,81 +60,13 @@ import {
   summarize,
 } from "./model";
 const colors = [
-  "#547b68",
-  "#91aa95",
-  "#c5d6b4",
-  "#e4d6b8",
-  "#8e9cae",
-  "#d7dfdf",
+  "#0071e3",
+  "#5ca8f8",
+  "#a5cafa",
+  "#7691b5",
+  "#c7d2e5",
+  "#dce6f5",
 ];
-function MoneyInput({
-  value,
-  onChange,
-  label = "Tutar",
-}: {
-  value: number;
-  onChange: (v: number) => void;
-  label?: string;
-}) {
-  const [draft, setDraft] = useState<string | null>(null);
-  const [invalid, setInvalid] = useState(false);
-  return (
-    <div className={"money-input " + (invalid ? "invalid" : "")}>
-      <input
-        aria-label={label}
-        inputMode="decimal"
-        value={
-          draft ??
-          (value
-            ? new Intl.NumberFormat("tr-TR", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              }).format(value / 100)
-            : "")
-        }
-        placeholder="0,00"
-        onChange={(e) => {
-          const s = e.target.value;
-          setDraft(s);
-          try {
-            onChange(parseMoney(s));
-            setInvalid(false);
-          } catch {
-            setInvalid(true);
-          }
-        }}
-        onBlur={() => {
-          if (!invalid) setDraft(null);
-        }}
-        aria-invalid={invalid}
-      />
-      <span>₺</span>
-      {invalid && <small>Geçerli bir tutar girin</small>}
-    </div>
-  );
-}
-function RateInput({
-  value,
-  onChange,
-}: {
-  value: number;
-  onChange: (n: number) => void;
-}) {
-  return (
-    <div className="rate-input">
-      <input
-        aria-label="Komisyon yüzdesi"
-        type="number"
-        min="0"
-        max="100"
-        step="0.01"
-        value={value / 100}
-        onChange={(e) => onChange(Math.round(Number(e.target.value) * 100))}
-      />
-      <span>%</span>
-    </div>
-  );
-}
 function Card({
   title,
   icon,
@@ -642,6 +577,26 @@ export default function App() {
                 </button>
               </div>
             </div>
+            <div className="settings-apply">
+              <p>Güne kaydedilen komisyonlar ve sabit giderler kullanılır.</p>
+              <button
+                className="button secondary small"
+                onClick={() => {
+                  if (
+                    confirm(
+                      "Güncel komisyonlar, sabit giderler ve vergi profili bu güne uygulansın mı? Girilen tutarlar korunur.",
+                    )
+                  ) {
+                    change(applySettingsToDay(day, settings));
+                    notify(
+                      "Güncel ayarlar güne uygulandı. Hesaplayıp kaydedebilirsiniz.",
+                    );
+                  }
+                }}
+              >
+                Güncel ayarları uygula
+              </button>
+            </div>
             <div className="entry-grid">
               <Card
                 title="Gelirler"
@@ -1040,6 +995,25 @@ export default function App() {
                           </div>
                         )}
                       </div>
+                      {e.invoice && (
+                        <label className="tax-check">
+                          <input
+                            type="checkbox"
+                            checked={e.vatDeductible ?? false}
+                            onChange={(ev) =>
+                              change({
+                                ...day,
+                                expenses: day.expenses.map((x) =>
+                                  x.id === e.id
+                                    ? { ...x, vatDeductible: ev.target.checked }
+                                    : x,
+                                ),
+                              })
+                            }
+                          />{" "}
+                          KDV indirilebilir (belge ve işlem uygun)
+                        </label>
+                      )}
                       <input
                         className="expense-date"
                         aria-label="Gider tarihi"
@@ -1066,8 +1040,8 @@ export default function App() {
                 <div className="tip">
                   <Info size={15} />
                   <span>
-                    Tutarları KDV dahil girin. KDV oranı bilgi amaçlı saklanır;
-                    vergi indirimi hesaplanmaz.
+                    Tutarları KDV dahil girin. Vergi modülünde KDV indirimi için
+                    belge ve ayrıca “KDV indirilebilir” onayı gerekir.
                   </span>
                 </div>
               </Card>
@@ -1080,8 +1054,7 @@ export default function App() {
                 <span>
                   Günlük sabit gider payı
                   <small>
-                    Kira, muhasebe ve diğer aylık giderler · ayın takvim gününe
-                    bölünür
+                    Kira, muhasebe ve diğer aylık giderlerin günlük payı
                   </small>
                 </span>
               </div>
@@ -1090,6 +1063,15 @@ export default function App() {
                 Ayarlar <ChevronRight size={14} />
               </button>
             </div>
+            {day.fixedDetails && (
+              <div className="fixed-detail">
+                Kira: {money(day.fixedDetails.rent)} · Muhasebe:{" "}
+                {money(day.fixedDetails.accounting)} · Diğer:{" "}
+                {money(day.fixedDetails.other)} · Bölünen gün:{" "}
+                {day.fixedDetails.days}
+              </div>
+            )}
+            <DayTaxInputs day={day} onChange={change} />
             <div className="note-line">
               <label htmlFor="note">Günün notu</label>
               <input
@@ -1154,13 +1136,19 @@ export default function App() {
                       sub="Komisyonlar ve tüm maliyetler"
                     />
                     <Stat
-                      label="Tahmini işletme sonucu"
+                      label={
+                        day.tax?.enabled
+                          ? "KDV dahil ara sonuç"
+                          : "Tahmini işletme sonucu"
+                      }
                       value={computed.result}
                       kind={computed.result >= 0 ? "positive" : "negative"}
                       sub={
-                        computed.result >= 0
-                          ? "Bugün artıdasınız"
-                          : "Bugün giderler gelirleri aştı"
+                        day.tax?.enabled
+                          ? "KDV ve vergi analizi aşağıdadır"
+                          : computed.result >= 0
+                            ? "Bugün artıdasınız"
+                            : "Bugün giderler gelirleri aştı"
                       }
                     />
                   </div>
@@ -1173,6 +1161,8 @@ export default function App() {
                       ["Sabit pay", computed.fixed],
                       ["Kurye", computed.courier],
                       ["Diğer kesinti", computed.other],
+                      ["Ek SGK / Bağ-Kur", day.taxCosts?.contributions ?? 0],
+                      ["Ek kira stopajı", day.taxCosts?.withholding ?? 0],
                     ].map(([label, n]) => (
                       <span key={String(label)}>
                         {label}
@@ -1180,6 +1170,19 @@ export default function App() {
                       </span>
                     ))}
                   </div>
+                  {day.tax?.enabled ? (
+                    <TaxSummary
+                      result={taxLedger([
+                        ...days.filter((d) => d.date !== day.date),
+                        day,
+                      ]).find((r) => r.date === day.date)!}
+                    />
+                  ) : (
+                    <p className="helper">
+                      Vergi analizi kapalı. Ayarlar bölümünden
+                      etkinleştirebilirsiniz.
+                    </p>
+                  )}
                   {computed.hasNet && (
                     <p className="helper">
                       Net tahsilat girilen kanallar için brüt ciro bilinmez;
@@ -1278,6 +1281,11 @@ export default function App() {
                 kind={summary.result >= 0 ? "positive" : "negative"}
               />
             </div>
+            <TaxReport
+              ledger={taxLedger(days)}
+              from={filter.from}
+              to={filter.to}
+            />
             <div className="report-grid">
               <Card
                 title="Günlük kayıtlar"
@@ -1411,23 +1419,21 @@ export default function App() {
               {filtered.length ? (
                 <ResponsiveContainer width="100%" height={240}>
                   <AreaChart
-                    data={[...filtered]
-                      .reverse()
-                      .map((d) => ({
-                        date: d.date.slice(5).split("-").reverse().join("."),
-                        sonuç: calculate(d).result / 100,
-                      }))}
+                    data={[...filtered].reverse().map((d) => ({
+                      date: d.date.slice(5).split("-").reverse().join("."),
+                      sonuç: calculate(d).result / 100,
+                    }))}
                   >
                     <defs>
                       <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
                         <stop
                           offset="0%"
-                          stopColor="#547b68"
+                          stopColor="#0071e3"
                           stopOpacity={0.2}
                         />
                         <stop
                           offset="100%"
-                          stopColor="#547b68"
+                          stopColor="#0071e3"
                           stopOpacity={0}
                         />
                       </linearGradient>
@@ -1458,7 +1464,7 @@ export default function App() {
                       type="monotone"
                       dataKey="sonuç"
                       name="Tahmini sonuç"
-                      stroke="#547b68"
+                      stroke="#0071e3"
                       fill="url(#area)"
                       strokeWidth={2}
                     />
@@ -1503,6 +1509,11 @@ export default function App() {
                 }
                 className="detail-card"
               >
+                <TaxSummary
+                  result={taxLedger(days).find(
+                    (r) => r.date === selectedDay.date,
+                  )!}
+                />
                 <div className="day-detail">
                   <div>
                     <h3>Gelirler</h3>
@@ -1629,11 +1640,18 @@ export default function App() {
                   <label>
                     Şirket tipi
                     <select
+                      aria-label="Şirket tipi"
                       value={settingsDraft.company}
                       onChange={(e) =>
                         updateSettings({
                           ...settingsDraft,
                           company: e.target.value,
+                          tax: {
+                            ...(settingsDraft.tax ??
+                              taxProfile(e.target.value)),
+                            method: taxProfile(e.target.value).method,
+                            confirmed: false,
+                          },
                         })
                       }
                     >
@@ -1663,6 +1681,22 @@ export default function App() {
                 </div>
               </Card>
               <Card title="Aylık sabit giderler" icon={<Receipt size={18} />}>
+                <label className="basis-select">
+                  Günlük dağıtım yöntemi
+                  <select
+                    aria-label="Sabit gider gün esası"
+                    value={settingsDraft.fixedBasis ?? "calendar"}
+                    onChange={(e) =>
+                      updateSettings({
+                        ...settingsDraft,
+                        fixedBasis: e.target.value as "calendar" | "30",
+                      })
+                    }
+                  >
+                    <option value="calendar">Ayın gerçek gün sayısı</option>
+                    <option value="30">Her ay 30 gün</option>
+                  </select>
+                </label>
                 <div className="form-grid">
                   {[
                     ["Aylık kira", "rent"],
@@ -1690,6 +1724,11 @@ export default function App() {
                   </span>
                 </div>
               </Card>
+              <TaxSettingsCard
+                company={settingsDraft.company}
+                value={settingsDraft.tax ?? taxProfile(settingsDraft.company)}
+                onChange={(tax) => updateSettings({ ...settingsDraft, tax })}
+              />
               <Card
                 title="Satış kanalları"
                 icon={<ArrowDownRight size={18} />}
@@ -2030,8 +2069,9 @@ export default function App() {
             </div>
             <div className="settings-save">
               <p>
-                <ShieldCheck size={16} /> Değişiklikler yeni günlük kayıtlarda
-                kullanılır.
+                <ShieldCheck size={16} /> Yeni ayarlar bugünün taslağına hemen
+                uygulanır; günlük kaydı tekrar kaydedin. Geçmiş günlerde “Güncel
+                ayarları uygula” seçeneğini kullanın.
               </p>
               <button
                 className="button primary"
@@ -2041,12 +2081,26 @@ export default function App() {
                     if (!api) return;
                     if (document.querySelector(".money-input.invalid"))
                       throw Error("Hatalı tutarları düzeltin.");
-                    const s = settingsSchema.parse(settingsDraft);
+                    const s = settingsSchema.parse({
+                      ...settingsDraft,
+                      tax: settingsDraft.tax
+                        ? {
+                            ...settingsDraft.tax,
+                            version: `TR-${settingsDraft.tax.year}-${Date.now()}`,
+                          }
+                        : undefined,
+                    });
                     await api.saveSettings(s);
                     setSettings(s);
                     setSettingsDirty(false);
-                    if (!dirty && !days.some((d) => d.date === day.date))
-                      setDay(newDay(s, day.date));
+                    if (
+                      day.date === today() ||
+                      !days.some((d) => d.date === day.date)
+                    ) {
+                      setDay(applySettingsToDay(day, s));
+                      setDirty(true);
+                      setComputed(null);
+                    }
                     notify("İşletme ayarlarınız kaydedildi.");
                   })
                 }
@@ -2064,7 +2118,7 @@ export default function App() {
           </span>
           <span>
             <span className="local-dot" /> Çevrimdışı çalışır{" "}
-            <span className="footer-dot">·</span> v1.0
+            <span className="footer-dot">·</span> v1.1
           </span>
         </footer>
       </main>

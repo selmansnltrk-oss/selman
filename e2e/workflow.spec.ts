@@ -90,3 +90,92 @@ test("demo ve mobil ekranlarda taşma yok", async ({ page }) => {
   }
   await page.screenshot({ path: "/tmp/defter-mobile.png", fullPage: true });
 });
+
+test("ayarlar girilmiş bugüne uygulanır, kira muhasebe komisyon ve vergi sonucu düşülür", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "Günü kaydet" })).toBeEnabled();
+  await page.getByLabel("Yemeksepeti geliri").fill("10000");
+  await page.getByLabel("Yemeksepeti geliri").blur();
+  await page.getByRole("button", { name: "Günü kaydet" }).click();
+  await expect(page.getByText("Günün kaydı güvenle saklandı.")).toBeVisible();
+  await page
+    .locator("nav")
+    .getByRole("button", { name: "Ayarlar", exact: true })
+    .click();
+  await page.getByLabel("Şirket tipi", { exact: true }).selectOption("Limited");
+  const fixed = page
+    .locator("section")
+    .filter({
+      has: page.getByRole("heading", {
+        name: "Aylık sabit giderler",
+        exact: true,
+      }),
+    });
+  await fixed.getByLabel("Sabit gider gün esası").selectOption("30");
+  await fixed
+    .locator("label")
+    .filter({ hasText: "Aylık kira" })
+    .locator("input")
+    .fill("30000");
+  await fixed
+    .locator("label")
+    .filter({ hasText: "Muhasebe ücreti" })
+    .locator("input")
+    .fill("3000");
+  const channels = page
+    .locator("section")
+    .filter({
+      has: page.getByRole("heading", { name: "Satış kanalları", exact: true }),
+    });
+  await channels
+    .locator(".config-row")
+    .first()
+    .getByLabel("Komisyon yüzdesi")
+    .fill("20");
+  await page.getByLabel("Tahmini vergi analizini etkinleştir").check();
+  await page
+    .getByLabel(
+      "Vergi yılı, tarife, yöntem, açılış matrahı ve varsa ortak bilgilerini mali müşavirimle kontrol ettim.",
+    )
+    .check();
+  await page.getByRole("button", { name: "Ayarları kaydet" }).click();
+  await expect(page.getByText("İşletme ayarlarınız kaydedildi.")).toBeVisible();
+  await page
+    .locator("nav")
+    .getByRole("button", { name: "İcmal", exact: true })
+    .click();
+  await expect(page.getByLabel("Yemeksepeti geliri")).toHaveValue("10.000,00");
+  await expect(page.locator(".fixed-strip")).toContainText("₺1.100,00");
+  await page
+    .getByText("KDV ve günlük vergi bilgileri", { exact: true })
+    .click();
+  await page
+    .locator(".vat-line")
+    .filter({ hasText: "Yemeksepeti" })
+    .getByLabel("Komisyon yüzdesi")
+    .fill("20");
+  await page.getByRole("button", { name: "Hesapla", exact: true }).click();
+  await expect(page.locator(".breakdown")).toContainText("₺2.000,00");
+  const value = (label: string) =>
+    page.locator(".tax-value").filter({ hasText: label });
+  await expect(value("Vergi öncesi sonuç")).toContainText("₺5.233,33");
+  await expect(value("Gelir / kurumlar vergi karşılığı")).toContainText(
+    "₺1.308,33",
+  );
+  await expect(value("Vergi sonrası sonuç")).toContainText("₺3.925,00");
+  await page.getByRole("button", { name: "Günü kaydet" }).click();
+  await page.getByRole("button", { name: "Kaydı güncelle" }).click();
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel("Yemeksepeti geliri")).toHaveValue("10.000,00");
+  await page.getByRole("button", { name: "Hesapla", exact: true }).click();
+  await expect(value("Vergi sonrası sonuç")).toContainText("₺3.925,00");
+  await page.screenshot({ path: "/tmp/defter-v1.1-tax.png", fullPage: true });
+  await page
+    .locator("nav")
+    .getByRole("button", { name: "Kasa", exact: true })
+    .click();
+  await expect(page.locator(".tax-report")).toContainText("₺1.308,33");
+});

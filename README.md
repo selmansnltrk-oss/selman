@@ -4,7 +4,9 @@ Küçük işletmeler için Türkçe, çevrimdışı gelir–gider ve **tahmini i
 
 ## Hızlı başlangıç
 
-Node.js 22.12+ veya 24 LTS ve npm gerekir. Mevcut depoda çalışın; bu bulut ortamı zaten yalıtılmıştır, ayrıca Git worktree oluşturmayın.
+Windows’ta Node.js 24 LTS kurulduktan sonra **BASLAT.cmd** dosyasına çift tıklayabilirsiniz. İlk kurulum internet gerektirir. Bu başlatıcı npm sürümlerinin atladığı Electron ve esbuild kurulum adımlarını da çalıştırır.
+
+Terminalden çalıştırmak için Node.js 22.12+ veya 24 LTS ve npm gerekir. Mevcut depoda çalışın; bu bulut ortamı zaten yalıtılmıştır, ayrıca Git worktree oluşturmayın.
 
 ```sh
 npm ci
@@ -29,11 +31,11 @@ npm test
 npm run dist:win
 ```
 
-NSIS kurulum dosyası `release/Defter Mini Setup 1.0.0.exe` altında oluşur. Bu bulut çalışmasında Windows kurulum dosyası üretilmedi; Linux dizin paketi ve Linux Electron çalışma akışı doğrulandı. Windows'ta kurulum/kaldırma, güncelleme ve SmartScreen davranışı ayrıca test edilmelidir. Dağıtım imzası/sertifikası bu sürümde yapılandırılmadı. Uygulama verileri kurulum dizininde tutulmaz; güncellemeler kullanıcı veritabanının üzerine yazmaz. Programı güncellemeden önce yedek alın.
+NSIS kurulum dosyası `release/Defter Mini Setup 1.1.0.exe` altında oluşur. Bu bulut çalışmasında Windows kurulum dosyası üretilmedi; Linux dizin paketi ve Linux Electron çalışma akışı doğrulandı. Windows'ta kurulum/kaldırma, güncelleme ve SmartScreen davranışı ayrıca test edilmelidir. Dağıtım imzası/sertifikası bu sürümde yapılandırılmadı. Uygulama verileri kurulum dizininde tutulmaz; güncellemeler kullanıcı veritabanının üzerine yazmaz. Programı güncellemeden önce yedek alın.
 
 ## Kullanım
 
-1. **Ayarlar:** işletme bilgileri, aylık giderler, komisyonlar ve kalıcı personel listesi. Tutarlar günlük maliyete göre personel şablonuna girilir. Kaydet düğmesiyle kalıcı olur. Ayarlar yeni günlere uygulanır; geçmiş kayıtlar oran ve gider anlık görüntülerini korur. Henüz kaydedilmemiş, değişiklik yapılmamış gün ayar kaydından sonra yenilenir.
+1. **Ayarlar:** işletme bilgileri, aylık giderler, komisyonlar ve kalıcı personel listesi. Tutarlar günlük maliyete göre personel şablonuna girilir. Kaydet düğmesiyle kalıcı olur. Ayarlar yeni günlere uygulanır; geçmiş kayıtlar oran ve gider anlık görüntülerini korur. Ayar kaydedildiğinde bugünün taslağına ve henüz kaydedilmemiş güne komisyon/sabit gider/vergi bilgileri, giriş tutarları korunarak uygulanır. Günlük kaydı tekrar kaydedin. Geçmiş bir günde yeni ayarları kullanmak için İcmal → Güncel ayarları uygula → Hesapla → Günü kaydet yolunu izleyin.
 2. **İcmal:** tarihi seçin, satışları, POS tahsilatlarını, personel maliyetlerini ve günlük giderleri girin. Hesapla sonucu gösterir; Günü kaydet hesaplar ve kalıcılaştırır. Aynı gün için kayıt varsa güncelleme onayı gerekir. Personel günlük ekrandan da eklenebilir; şablonun sonraki günlere taşınması için Ayarlar bölümünü kaydedin.
 3. **Kasa:** tek gün için iki tarih alanına aynı tarihi girin veya aralık/hazır dönem seçin. Bir günlük kayda tıklayın; ayrıntıları görüntüleyin, Düzenle ile İcmal'e dönün. Silme onaylıdır.
 4. **Yedekleme:** Ayarlar → Yedek al / Geri yükle. JSON yedeği ayarları ve günlük kayıtları içerir; harici bir yerde güvenle saklayın. İçe aktarma doğrulanır ve mevcut kayıtları değiştirmek için onay ister. Masaüstü geri yükleme öncesinde `geri-yukleme-oncesi.json` güvenlik kopyası da oluşturulur. Bu dosya bir önceki geri yüklemeye aittir; düzenli yedek yerine geçmez.
@@ -44,9 +46,9 @@ NSIS kurulum dosyası `release/Defter Mini Setup 1.0.0.exe` altında oluşur. Bu
 - POS tutarları satış kaynağı değildir, girilen satışların kartla tahsil edilen alt kümesidir. Gelire eklenmez. Birden fazla POS toplamı girilen satış toplamını aşamaz. Platform komisyonu POS maliyetini de kapsıyorsa aynı tahsilatı ayrıca POS'a girmeyin.
 - Net tahsilat modunda ilgili platform komisyonu tekrar düşülmez. Bu modda brüt ciro geri hesaplanmaz; rapor toplamı girilen brüt satış ve net tahsilatların toplamıdır. Bu durum sonuç ekranında belirtilir.
 - Personel maliyeti ücret + prim + sigorta + diğer maliyet toplamıdır. Nakit ödeme/avans ayrı bilgi alanıdır, tekrar gider yazılmaz. Aylık maaşı günlük maliyete kullanıcı dönüştürür.
-- Aylık kira + muhasebe + diğer sabit giderler ilgili ayın gerçek gün sayısına bölünür; artık yıl desteklenir. Günlük pay en yakın kuruşa yuvarlanır; aylık toplamda birkaç kuruş yuvarlama farkı oluşabilir.
+- Aylık kira + muhasebe + diğer sabit giderler Ayarlar’daki seçime göre ilgili ayın gerçek gün sayısına veya her ay 30’a bölünür; artık yıl desteklenir. Günlük pay en yakın kuruşa yuvarlanır; aylık toplamda birkaç kuruş yuvarlama farkı oluşabilir.
 - Kurye ve diğer kesinti oranları girilen satış/tahsilat toplamına uygulanır. Aynı kesintiyi platform oranında da tanımlamayın.
-- Gider tutarları **KDV dahil** girilir. Fiş/fatura ve kullanıcı tarafından girilen KDV oranı saklanır; KDV indirimi veya gelir/kurumlar vergisi hesaplanmaz. Belgesiz gider de tam tutarıyla maliyete dahil edilir.
+- Gider tutarları **KDV dahil** girilir. Fiş/fatura ve kullanıcı tarafından girilen KDV oranı saklanır. Vergi analizi etkinleştirilip profili teyit edildiğinde, belgeye ek olarak “KDV indirilebilir” onayı verilen giderin KDV’si ayrıştırılır; fiş/fatura tek başına indirim varsayımı oluşturmaz. Belgesiz gider de tam tutarıyla maliyete dahil edilir.
 - Tahmini sonuç = girilen gelir − platform/POS/kurye/diğer kesintiler − personel maliyeti − günlük giderler − sabit pay. Stok/satılan mal maliyeti girilmezse sonuç **gerçek net kâr değildir**. Ürün maliyetini gider kategorisi olarak girebilirsiniz; stok envanter muhasebesi bu sürümde bulunmaz.
 - Kasa raporu finansal sonuç raporudur. Açılış bakiyesi, tahsilat vadeleri ve banka hareketleri izlenmediğinden fiili kasa bakiyesi sunmaz.
 
@@ -64,9 +66,9 @@ NSIS kurulum dosyası `release/Defter Mini Setup 1.0.0.exe` altında oluşur. Bu
 ## Doğrulama
 
 ```sh
-npm test               # 12 hesap testi + SQLite entegrasyon testi
+npm test               # 38 hesaplama, vergi ve SQLite testi
 npm run build          # ortak model, TypeScript ve üretim varlıkları
-npm run test:e2e       # 2 gerçek tarayıcı iş akışı testi
+npm run test:e2e       # 3 gerçek tarayıcı iş akışı testi
 npm run test:desktop   # üretim derlemesinde Electron/IPC/kapanıp açılma kontrolü
 ```
 
@@ -79,3 +81,25 @@ npm run dist:linux
 ```
 
 Ağ proxy'si olan bulut ortamlarında Electron indirmesi için `ELECTRON_GET_USE_PROXY=1` ve `GLOBAL_AGENT_HTTPS_PROXY`/`GLOBAL_AGENT_HTTP_PROXY` mevcut proxy değişkenlerinden aktarılabilir. TLS ve indirme checksum doğrulamasını kapatmayın. Bulut için tekrar kullanılabilir kurulum komutları `scripts/cloud-install.sh` içindedir.
+
+## 1.1 — vergi analizi ve güncelleme
+
+Açık gri, beyaz ve mavi görünüm; yerel sistem yazı tipleri kullanır: macOS’ta Apple sistem fontu, Windows’ta Segoe UI Variable / Segoe UI. Harici Apple font dosyası dağıtılmaz.
+
+**Var olan verilerle güncelleme:** Önce eski uygulamada Ayarlar → Yedek al. Güncel kaynak ZIP’ini yeni klasöre çıkarın, `BASLAT.cmd` dosyasını çalıştırın. Uygulama kimliği ve userData yolu değiştirilmedi; kullanıcı veritabanı korunur. Eski günlük kayıtlar ve eski JSON yedekleri yeni isteğe bağlı alanlar olmadan açılır. `node_modules`, `dist` veya uygulama veritabanını yeni kaynak ZIP’ine kopyalamanız gerekmez. Kullanıcı veritabanını silmeyin.
+
+### Vergi kuralları ve güven sınırı
+
+`src/tax-rules.json`, kullanıcının sağladığı 2026 başlangıç verisini içerir: genel kurumlar vergisi %25, ticari kazanç tarifesi 190.000 / 400.000 / 1.000.000 / 5.300.000 TL sınırları ve %15 / 20 / 27 / 35 / 40 dilimleri. **Bu görevde resmi kaynaktan doğrulanmadı; resmi veya bütün özel durumları kapsayan mevzuat veritabanı değildir.** Ayarlarda düzenlenebilir; başka yıl seçmek tarifeyi otomatik güncellemez. Etkinleştirme ve yıl/tarife/açılış matrahı teyidi yapılana kadar vergi sonuçları “Hesaplanamadı” gösterilir. Kaydedilen her ayarda ayrı profil sürümü oluşturulur; günler kendi tarife anlık görüntülerini saklar.
+
+`src/tax-policy.ts` doğrulama/profil/KDV ayrıştırmasını, `src/tax.ts` bağımsız tahmini vergi analizini içerir. Şahısta yıllık kümülatif matrahın artan oranlı vergi farkı, limited/anonimde gider ve matrah düzeltmeleri sonrası dönem kazancının vergi farkı karşılık olarak hesaplanır. Negatif fark tahmini karşılık iptalidir; resmi iade değildir. Adi ortaklıkta her ortağın payı, statüsü ve açılış matrahı gerekir; ortaklık kendiliğinden kurumlar vergisi mükellefi varsayılmaz.
+
+Açılış matrahı, uygulamada kayıtlı ilk günden önceki aynı yılın kümülatif tahminidir; kayıtlı günleri içermemelidir. KKEG/istisna/indirimler günlük matrah düzeltmesidir. İlgili geçmiş yıl zararlarının kullanılabilirliğini muhasebeciniz belirler. Geçmiş kayıt değişince kaynak veriler tarihe göre yeniden hesaplanır, sonraki günlerin karşılıkları Kasa’da otomatik değişir. Eksik vergi profili olan önceki kayıt varsa kümülatif karşılık hesaplanamaz; önce o kaydı tamamlayın. Uygulama dışındaki günlerin doğruluğu açılış matrahını teyit eden kullanıcıya bağlıdır.
+
+KDV her kalemde net/KDV/brüt ayrıştırılır. Net platform tahsilatından brüt fatura bilinmediği için KDV ve vergi sonucu üretilmez. Gelir KDV’si ve onaylı gider KDV’si farkından aylık tahmini yükümlülük ve kredi hesaplanır; negatif bakiye sonraki aya taşınır. Açılış devreden KDV kayıtlı ilk ayın kredisi olmalıdır. İleri dönem hesapları önceki ayda eksik veri varsa bloke edilir. KDV tutarı vergi sonrası sonuçtan yeniden düşülmez. Kasa’daki dönem KDV değeri günlük aylık yükümlülük değişimlerinin toplamıdır, aynı birikimli bakiye her gün tekrar toplanmaz.
+
+Sabit gider/komisyonlar belge bazında KDV detayına sahip olmadığından girilen brüt maliyetleriyle analiz edilir, otomatik KDV indirimleri yaratılmaz. Günlük giderler KDV dahil girilir; indirim belgesi/işlem uygunluğu kullanıcı onayı gerektirir. KDV istisnaları, tevkifat, yurt dışı işlemler, mahsup ve özel beyan dönemleri otomatik çözülmez.
+
+Kira stopajı yalnızca açıkça etkinleştirilirse hesaplanır. Brüt kirada stopaj maliyete ikinci kez eklenmez; net kirada oran üzerinden brütleştirme farkı günlük gider olur. Ek SGK/Bağ-Kur giderlerini personel maliyetine zaten yazdıysanız bu alana tekrar yazmayın. Bordro otomasyonu yapılmaz. Fiilen ödenen vergi, geçici vergi mahsubu veya avans ayrı bilgi alanıdır ve karşılık hesabından ikinci kez düşülmez.
+
+Tüm sonuçlar işletme analizi içindir; resmi beyanname, net vergi borcu, gerçek net kâr veya fiili kasa bakiyesi iddiası yoktur.

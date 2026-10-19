@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { taxSettingsSchema, taxProfile, splitVat } from "./tax-policy";
 const cents = z.number().int().min(0).max(100_000_000_000);
 const rate = z.number().int().min(0).max(10000);
 const id = z.string().min(1).max(100);
@@ -34,6 +35,8 @@ export const settingsSchema = z.object({
   courierRate: rate,
   otherRate: rate,
   employees: z.array(employeeSchema).max(100),
+  fixedBasis: z.enum(["calendar", "30"]).optional(),
+  tax: taxSettingsSchema.optional(),
 });
 export const daySchema = z.object({
   date: dateSchema,
@@ -45,6 +48,8 @@ export const daySchema = z.object({
         amount: cents,
         rate,
         mode: z.enum(["gross", "net"]),
+        vat: rate.optional(),
+        vatIncluded: z.boolean().optional(),
       }),
     )
     .max(100),
@@ -58,6 +63,8 @@ export const daySchema = z.object({
         amount: cents,
         category: text,
         invoice: z.boolean(),
+        vatDeductible: z.boolean().optional(),
+        vatIncluded: z.boolean().optional(),
         vat: rate,
         date: dateSchema,
       }),
@@ -67,6 +74,24 @@ export const daySchema = z.object({
   courierRate: rate,
   otherRate: rate,
   note: z.string().max(2000),
+  tax: taxSettingsSchema.optional(),
+  fixedDetails: z
+    .object({
+      rent: cents,
+      accounting: cents,
+      other: cents,
+      days: z.number().int().min(28).max(31),
+    })
+    .optional(),
+  taxCosts: z
+    .object({
+      withholding: cents,
+      contributions: cents,
+      withholdingCash: cents,
+    })
+    .optional(),
+  taxAdjustment: z.object({ additions: cents, deductions: cents }).optional(),
+  taxPaid: cents.optional(),
 });
 export type Settings = z.infer<typeof settingsSchema>;
 export type Day = z.infer<typeof daySchema>;
@@ -122,27 +147,88 @@ export const defaults: Settings = {
   employees: [],
 };
 export function newDay(s: Settings, date = today()): Day {
-  const [y, m] = date.split("-").map(Number);
   return {
     date,
-    incomes: s.channels.map((c) => ({ ...c, amount: 0, mode: "gross" })),
+    incomes: s.channels.map((c) => ({
+      ...c,
+      amount: 0,
+      mode: "gross",
+      vat: (s.tax ?? taxProfile(s.company)).vatDefault,
+      vatIncluded: (s.tax ?? taxProfile(s.company)).vatIncluded,
+    })),
     pos: s.pos.map((p) => ({ ...p, amount: 0 })),
     employees: s.employees.map((e) => ({ ...e, payment: 0 })),
     expenses: [],
-    fixed: Math.round(
-      (s.rent + s.accounting + s.fixed) / new Date(y, m, 0).getDate(),
-    ),
     courierRate: s.courierRate,
     otherRate: s.otherRate,
     note: "",
+    ...dailySettingsSnapshot(s, date),
+  };
+}
+export function dailySettingsSnapshot(s: Settings, date: string) {
+  const [y, m] = date.split("-").map(Number);
+  const divisor = s.fixedBasis === "30" ? 30 : new Date(y, m, 0).getDate();
+  const tax = structuredClone(s.tax ?? taxProfile(s.company));
+  const withheld = tax.rentWithholding
+    ? tax.rentIsNet
+      ? Math.round((s.rent * 10000) / (10000 - tax.withholdingRate)) - s.rent
+      : Math.round((s.rent * tax.withholdingRate) / 10000)
+    : 0;
+  return {
+    tax,
+    fixed: Math.round((s.rent + s.accounting + s.fixed) / divisor),
+    fixedDetails: {
+      rent: Math.round(s.rent / divisor),
+      accounting: Math.round(s.accounting / divisor),
+      other: Math.round(s.fixed / divisor),
+      days: divisor,
+    },
+    taxCosts: {
+      withholding: tax.rentIsNet ? Math.round(withheld / divisor) : 0,
+      withholdingCash: Math.round(withheld / divisor),
+      contributions: Math.round((tax.monthlySgk + tax.monthlyBagkur) / divisor),
+    },
+  };
+}
+/** Keep amounts and daily costs; only refresh settings-derived rates and fixed shares. */
+export function applySettingsToDay(d: Day, s: Settings): Day {
+  const fresh = newDay(s, d.date);
+  return {
+    ...d,
+    ...dailySettingsSnapshot(s, d.date),
+    courierRate: s.courierRate,
+    otherRate: s.otherRate,
+    incomes: [
+      ...d.incomes.map((i) => ({
+        ...i,
+        rate: s.channels.find((c) => c.id === i.id)?.rate ?? i.rate,
+      })),
+      ...fresh.incomes.filter((i) => !d.incomes.some((x) => x.id === i.id)),
+    ],
+    pos: [
+      ...d.pos.map((i) => ({
+        ...i,
+        rate: s.pos.find((c) => c.id === i.id)?.rate ?? i.rate,
+      })),
+      ...fresh.pos.filter((i) => !d.pos.some((x) => x.id === i.id)),
+    ],
   };
 }
 export function calculate(raw: Day) {
   const d = daySchema.parse(raw);
-  const gross = d.incomes.reduce((a, i) => a + i.amount, 0);
+  const saleAmount = (i: Day["incomes"][number]) =>
+    d.tax?.enabled && i.mode === "gross"
+      ? splitVat(
+          i.amount,
+          i.vat ?? d.tax.vatDefault,
+          i.vatIncluded ?? d.tax.vatIncluded,
+        ).gross
+      : i.amount;
+  const gross = d.incomes.reduce((a, i) => a + saleAmount(i), 0);
   const platform = d.incomes.reduce(
     (a, i) =>
-      a + (i.mode === "gross" ? Math.round((i.amount * i.rate) / 10000) : 0),
+      a +
+      (i.mode === "gross" ? Math.round((saleAmount(i) * i.rate) / 10000) : 0),
     0,
   );
   const posBase = d.pos.reduce((a, p) => a + p.amount, 0);
@@ -163,7 +249,15 @@ export function calculate(raw: Day) {
   const courier = Math.round((gross * d.courierRate) / 10000);
   const other = Math.round((gross * d.otherRate) / 10000);
   const total =
-    platform + pos + personnel + expenses + d.fixed + courier + other;
+    platform +
+    pos +
+    personnel +
+    expenses +
+    d.fixed +
+    courier +
+    other +
+    (d.taxCosts?.withholding ?? 0) +
+    (d.taxCosts?.contributions ?? 0);
   return {
     gross,
     platform,

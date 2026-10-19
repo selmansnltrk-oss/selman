@@ -1772,3 +1772,800 @@ footer svg {
     padding: 25px;
   }
 }
+/* Defter Mini 1.1 — native system typography and a neutral, blue-accented desktop surface. */
+:root {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI",
+    sans-serif;
+  background: #f5f5f7;
+  color: #1d1d1f;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+body {
+  background: #f5f5f7;
+}
+header {
+  background: #ffffffed;
+  border-color: #e5e5ea;
+  backdrop-filter: blur(20px);
+}
+.header-inner {
+  height: 86px;
+}
+.brand-icon {
+  background: #0071e3;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px #0071e31a;
+}
+.brand-light {
+  color: #86868b;
+}
+.brand small {
+  color: #6e6e73;
+  letter-spacing: 1.5px;
+}
+.brand > span {
+  font-size: 26px;
+  letter-spacing: -1.1px;
+}
+nav {
+  background: #ededf0;
+  border: 1px solid #e4e4e9;
+  border-radius: 10px;
+  padding: 4px;
+}
+nav button {
+  color: #6e6e73;
+  padding: 10px 25px;
+  font-size: 13px;
+}
+nav button.active {
+  color: #0071e3;
+  background: #fff;
+  box-shadow: 0 2px 5px #00000010;
+}
+nav button:hover {
+  color: #0071e3;
+}
+.business-avatar {
+  color: #0066cc;
+  background: #edf5ff;
+  border-color: #dceafb;
+}
+.business small {
+  color: #6e6e73;
+}
+.local-dot {
+  background: #34a853;
+}
+.eyebrow,
+.section-kicker {
+  color: #6e6e73;
+}
+h1 {
+  font-size: 32px;
+  font-weight: 650;
+  letter-spacing: -1.2px;
+}
+.page-intro p {
+  color: #6e6e73;
+  font-size: 13px;
+}
+.offline {
+  color: #6e6e73;
+}
+.badge {
+  color: #286d45;
+  background: #edf7ef;
+  border-color: #dfede0;
+}
+.card {
+  border: 1px solid #e6e6eb;
+  border-radius: 16px;
+  box-shadow: 0 4px 18px #1d1d1f03;
+  padding: 23px;
+}
+.card h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1d1d1f;
+}
+.card-description {
+  font-size: 12px;
+  color: #86868b;
+  margin-bottom: 23px;
+}
+.count {
+  background: #f5f5f7;
+  color: #6e6e73;
+  border-color: #e9e9ed;
+  font-size: 10px;
+}
+.muted {
+  color: #86868b;
+}
+.icon-tile {
+  background: #f2f3f6;
+  color: #7b8390;
+  border-radius: 9px;
+}
+.icon-tile.green {
+  background: #edf5ff;
+  color: #0071e3;
+}
+.icon-tile.purple {
+  background: #f3efff;
+  color: #8b61c8;
+}
+.icon-tile.orange {
+  background: #fff5e9;
+  color: #cc8c35;
+}
+input:not([type="checkbox"]),
+select {
+  border-color: #dddde3;
+  border-radius: 8px;
+  color: #333336;
+  padding: 10px 11px;
+  font-size: 12px;
+}
+input::placeholder {
+  color: #9b9ba1;
+}
+input:focus,
+select:focus {
+  outline-color: #0071e3;
+  border-color: #0071e3;
+}
+.money-input {
+  border-color: #dddde3;
+  border-radius: 8px;
+}
+.money-input input {
+  font-size: 13px;
+  color: #1d1d1f;
+}
+.money-input span {
+  color: #8e8e93;
+}
+.money-input:focus-within {
+  border-color: #0071e3;
+  box-shadow: 0 0 0 3px #0071e30c;
+}
+.money-input.invalid {
+  border-color: #d14a44;
+}
+.income-label label {
+  font-size: 12px;
+  color: #333336;
+}
+.income-label select {
+  font-size: 10px;
+  color: #86868b;
+}
+.channel-logo {
+  border-color: #ececf0;
+}
+.sub-total {
+  border-color: #e5e5ea;
+  font-size: 12px;
+}
+.sub-total span {
+  color: #6e6e73;
+}
+.sub-total b {
+  font-size: 14px;
+  color: #333336;
+}
+.minor-title {
+  font-size: 12px;
+  color: #333336;
+}
+.minor-title > span {
+  background: #f0f5ff;
+  color: #6f8bb1;
+}
+.helper {
+  font-size: 11px;
+  color: #6e6e73;
+}
+.pos-row > div:first-child {
+  font-size: 12px;
+  color: #333336;
+}
+.pos-row small {
+  font-size: 10px;
+  color: #86868b;
+}
+.text-button {
+  font-size: 11px;
+  color: #0071e3;
+}
+.text-button:hover {
+  color: #004fa5;
+}
+.add-line > input {
+  font-size: 11px;
+}
+.square-button {
+  background: #f0f5ff;
+  color: #0071e3;
+  border-color: #dae8ff;
+  border-radius: 8px;
+}
+.square-button:hover {
+  background: #e3efff;
+}
+.employee {
+  background: #f9f9fb;
+  border-color: #e8e8ed;
+  border-radius: 11px;
+  padding: 13px;
+}
+.employee-head > input {
+  font-size: 12px;
+  color: #333336;
+}
+.avatar {
+  background: #eceef3;
+  color: #6e768b;
+  border-color: #e3e5ec;
+}
+.employee-fields label,
+.form-grid label {
+  font-size: 11px;
+  color: #6e6e73;
+}
+.employee-fields .money-input input {
+  font-size: 12px;
+}
+.expense {
+  border-color: #e6e6eb;
+  border-radius: 11px;
+  padding: 13px;
+}
+.expense-head > input {
+  font-size: 12px;
+  color: #333336;
+}
+.expense-main select {
+  color: #6e6e73;
+  background: #f7f7fa;
+  font-size: 10px;
+}
+.expense-footer > label {
+  font-size: 10px;
+  color: #6e6e73;
+}
+.expense-date {
+  color: #86868b;
+  font-size: 10px;
+}
+.tip {
+  background: #f7f9fc;
+  border-color: #e9edf4;
+  color: #7c879a;
+  font-size: 10px;
+}
+.empty {
+  color: #9b9ba1;
+  font-size: 12px;
+}
+.divider {
+  background: #ececf0;
+}
+.fixed-strip {
+  background: #edf4fd;
+  border-color: #e0eafa;
+  border-radius: 12px;
+}
+.fixed-strip > div > span {
+  font-size: 12px;
+  color: #3b5373;
+}
+.fixed-strip small {
+  font-size: 10px;
+  color: #73869e;
+}
+.fixed-strip .icon-tile {
+  background: #e4edfc;
+  color: #0071e3;
+}
+.fixed-strip b {
+  color: #31577e;
+  font-size: 14px;
+}
+.fixed-strip .text-button {
+  border-color: #dbe5f3;
+}
+.note-line {
+  font-size: 11px;
+  color: #6e6e73;
+}
+.note-line input {
+  font-size: 12px;
+}
+.result-panel {
+  border-color: #e2e4ea;
+  border-radius: 16px;
+  box-shadow: 0 5px 20px #1d1d1f03;
+}
+.result-heading h2 {
+  font-size: 20px;
+  font-weight: 600;
+}
+.button {
+  border-radius: 9px;
+  font-size: 12px;
+  padding: 11px 17px;
+}
+.button.primary {
+  background: #0071e3;
+  box-shadow: none;
+}
+.button.primary:hover {
+  background: #0077ed;
+}
+.button.secondary {
+  color: #4b5563;
+  border-color: #dfe2e8;
+  background: #fff;
+}
+.button.secondary:hover {
+  background: #f5f8fd;
+}
+.button.small {
+  font-size: 11px;
+  border-radius: 8px;
+}
+.button.danger {
+  color: #c24c48;
+  background: #fff6f5;
+  border-color: #f4dedc;
+}
+.stat {
+  border-color: #e6e6eb;
+  border-radius: 12px;
+  padding: 19px;
+  background: #fff;
+}
+.stat-label {
+  font-size: 11px;
+  color: #6e6e73;
+}
+.stat-label span {
+  color: #8e8e93;
+}
+.stat strong {
+  font-size: 27px;
+  color: #1d1d1f;
+  font-weight: 600;
+  letter-spacing: -0.8px;
+}
+.stat small {
+  color: #86868b;
+  font-size: 10px;
+}
+.stat.positive {
+  background: #f1f8f3;
+  border-color: #e1eee4;
+}
+.stat.positive strong,
+.text-green {
+  color: #21814b;
+}
+.stat.negative strong,
+.text-red {
+  color: #c45850;
+}
+.breakdown > span {
+  font-size: 10px;
+  color: #6e6e73;
+}
+.breakdown b {
+  color: #4c4c52;
+  font-size: 11px;
+}
+.disclaimer {
+  color: #86868b;
+  font-size: 10px;
+}
+.result-panel > .disclaimer {
+  background: #fafafc;
+  border-color: #eeeef2;
+}
+.result-placeholder {
+  color: #86868b;
+  font-size: 12px;
+}
+footer {
+  color: #9b9ba1;
+  font-size: 10px;
+}
+footer svg {
+  color: #8e8e93;
+}
+.report-toolbar,
+.settings-save {
+  border-color: #e3e4ea;
+  border-radius: 12px;
+}
+.record {
+  border-color: #eeeef2;
+}
+.record:hover,
+.record.selected {
+  background: #eff5ff;
+}
+.record b {
+  font-size: 12px;
+  color: #333336;
+}
+.record small {
+  color: #86868b;
+  font-size: 10px;
+}
+.record > span:last-child {
+  font-size: 12px;
+}
+.legend > div {
+  font-size: 11px;
+  color: #6e6e73;
+}
+.legend b {
+  color: #4c4c52;
+  font-size: 11px;
+}
+.report-stats .stat strong {
+  font-size: 22px;
+}
+.form-grid input:not([type="checkbox"]),
+.form-grid select {
+  font-size: 12px;
+}
+.config-row > input {
+  font-size: 12px;
+}
+.rate-input {
+  border-color: #dddde3;
+  border-radius: 8px;
+}
+.rate-input span {
+  color: #86868b;
+}
+.settings-save p {
+  color: #6e6e73;
+  font-size: 11px;
+}
+.backup-note p {
+  font-size: 12px;
+  color: #6e6e73;
+}
+.toast {
+  background: #f5fff8;
+  border-color: #d5eadb;
+  color: #2b7447;
+}
+.alert.error {
+  color: #af4540;
+  background: #fff4f3;
+  border-color: #efdad7;
+}
+.modal {
+  border-radius: 20px;
+}
+.modal p {
+  color: #6e6e73;
+}
+.tax-settings {
+  grid-column: 1/-1;
+}
+.tax-settings > .form-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.tax-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6e6e73;
+  font-size: 11px;
+  margin: 14px 0;
+  line-height: 1.7;
+}
+.tax-check input {
+  flex-shrink: 0;
+}
+.tax-check.confirm {
+  padding: 14px;
+  background: #f0f5ff;
+  border-radius: 8px;
+  color: #476a9a;
+}
+.tax-settings details,
+.day-tax details {
+  margin-top: 20px;
+  border-top: 1px solid #ececf0;
+  padding-top: 16px;
+}
+.tax-settings summary,
+.day-tax summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: #4b5563;
+  font-weight: 550;
+}
+.tax-settings a {
+  color: #0071e3;
+}
+.tax-settings .config-row {
+  max-width: 500px;
+  align-items: flex-end;
+}
+.tax-settings .config-row > label {
+  flex: 1;
+  font-size: 11px;
+  color: #6e6e73;
+}
+.tax-settings .config-row > label > span {
+  display: block;
+  padding: 9px 0;
+}
+.partner {
+  border-bottom: 1px solid #ececf0;
+  padding-bottom: 15px;
+}
+.settings-apply {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: -4px 0 18px;
+}
+.settings-apply p {
+  font-size: 11px;
+  color: #86868b;
+  margin: 0;
+}
+.fixed-detail {
+  font-size: 11px;
+  color: #6e6e73;
+  padding: 10px 20px;
+}
+.basis-select {
+  display: block;
+  color: #6e6e73;
+  font-size: 11px;
+  margin-top: 20px;
+}
+.basis-select select {
+  display: block;
+  width: 100%;
+  margin-top: 7px;
+}
+.day-tax {
+  margin: 12px 0 20px;
+  padding: 16px 22px;
+}
+.day-tax details {
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+.vat-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 0;
+  border-bottom: 1px solid #eeeef2;
+  font-size: 12px;
+}
+.vat-line > span {
+  min-width: 130px;
+}
+.vat-line .rate-input {
+  width: 85px;
+}
+.vat-line small {
+  font-size: 10px;
+  color: #86868b;
+}
+.vat-expenses p {
+  font-size: 11px;
+  color: #6e6e73;
+}
+.tax-summary {
+  border-top: 1px solid #ececf0;
+  padding: 20px 0;
+}
+.tax-summary h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 16px;
+}
+.tax-summary h3 span {
+  font-size: 10px;
+  color: #0071e3;
+  background: #edf5ff;
+  border-radius: 5px;
+  padding: 3px 6px;
+  margin-left: 8px;
+  font-weight: 400;
+}
+.tax-values {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 13px;
+}
+.tax-value {
+  padding: 15px;
+  background: #f8f9fc;
+  border: 1px solid #edeef3;
+  border-radius: 10px;
+}
+.tax-value small {
+  color: #6e6e73;
+  font-size: 11px;
+  display: block;
+}
+.tax-value strong {
+  display: block;
+  font-size: 19px;
+  letter-spacing: -0.3px;
+  font-weight: 550;
+  margin-top: 8px;
+  color: #31577e;
+}
+.tax-value strong.text-red {
+  color: #c45850;
+}
+.tax-warning {
+  font-size: 11px;
+  color: #9a6d2c;
+  background: #fffaf1;
+  border: 1px solid #f2e8d6;
+  border-radius: 7px;
+  padding: 10px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.tax-warning svg {
+  flex-shrink: 0;
+}
+.tax-report {
+  margin-bottom: 20px;
+}
+.tax-table {
+  margin-top: 18px;
+}
+.tax-table > div {
+  display: flex;
+  gap: 20px;
+  padding: 12px 0;
+  border-bottom: 1px solid #ececf0;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: #6e6e73;
+}
+.tax-table small {
+  width: 100%;
+  color: #9a6d2c;
+}
+@media (max-width: 1150px) {
+  .card {
+    padding: 18px;
+  }
+  .income-row > .money-input,
+  .pos-row .money-input {
+    width: 99px;
+  }
+  .income-label label {
+    font-size: 11px;
+  }
+  .tax-value strong {
+    font-size: 17px;
+  }
+  .tax-settings > .form-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .report-stats .stat strong {
+    font-size: 19px;
+  }
+}
+@media (max-width: 900px) {
+  .tax-settings > .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .card-description {
+    font-size: 11px;
+  }
+  .tax-values {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 640px) {
+  h1 {
+    font-size: 25px;
+  }
+  .header-inner {
+    height: 76px;
+  }
+  .brand > span {
+    font-size: 22px;
+  }
+  .brand-icon {
+    width: 33px;
+    height: 36px;
+  }
+  .brand small {
+    font-size: 6px;
+  }
+  nav button {
+    font-size: 11px;
+    padding: 8px 9px;
+    gap: 4px;
+  }
+  .page-intro p {
+    font-size: 12px;
+  }
+  .intro-actions .button {
+    font-size: 9px;
+  }
+  .income-row > .money-input,
+  .pos-row .money-input {
+    width: 125px;
+  }
+  .tax-settings {
+    grid-column: auto;
+  }
+  .tax-settings > .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .tax-value strong {
+    font-size: 16px;
+  }
+  .tax-value small {
+    font-size: 10px;
+  }
+  .tax-values {
+    gap: 9px;
+  }
+  .tax-value {
+    padding: 12px;
+  }
+  .settings-apply {
+    align-items: flex-start;
+  }
+  .settings-apply p {
+    font-size: 10px;
+    max-width: 140px;
+  }
+  .settings-apply button {
+    font-size: 10px;
+    white-space: normal;
+    text-align: center;
+    max-width: 170px;
+  }
+  .fixed-detail {
+    font-size: 10px;
+    padding: 10px 5px;
+  }
+  .report-stats .stat strong {
+    font-size: 20px;
+  }
+  .vat-line small {
+    width: 100%;
+  }
+  .settings-save p {
+    font-size: 10px;
+  }
+  footer {
+    font-size: 8px;
+  }
+}
+.tax-value strong.text-green {
+  color: #21814b;
+}

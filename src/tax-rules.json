@@ -1,0 +1,15 @@
+{
+  "id": "TR-2026-user-draft-v1",
+  "year": 2026,
+  "status": "Kullanıcının sağladığı başlangıç tarifesi; resmi kaynak doğrulaması yapılmadı. Mali müşavir teyidi gerekir.",
+  "reference": "Gelir Vergisi Kanunu md. 103; Kurumlar Vergisi Kanunu md. 32; KDV Kanunu md. 29 ve 34",
+  "corporateRate": 2500,
+  "vatRates": [100, 1000, 2000],
+  "brackets": [
+    { "ceiling": 19000000, "rate": 1500 },
+    { "ceiling": 40000000, "rate": 2000 },
+    { "ceiling": 100000000, "rate": 2700 },
+    { "ceiling": 530000000, "rate": 3500 },
+    { "ceiling": null, "rate": 4000 }
+  ]
+}
