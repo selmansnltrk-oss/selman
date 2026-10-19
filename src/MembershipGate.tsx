@@ -115,7 +115,11 @@ export default function MembershipGate({ children }: { children: ReactNode }) {
             <ShieldCheck size={14} />
             <b>{state.member?.name || state.member?.email}</b>
             <span className="membership-pill">
-              {state.subscription?.planName} · Aktif
+              {state.subscription?.planName} ·{" "}
+              {state.subscription?.status === "CANCELED" ||
+              state.subscription?.autoRenewCanceled
+                ? "Yenileme iptal · dönem sonuna kadar aktif"
+                : "Aktif"}
             </span>
             <small>
               {state.subscription?.accessUntil
