@@ -31,7 +31,7 @@ npm test
 npm run dist:win
 ```
 
-NSIS kurulum dosyası `release/Defter Mini Setup 1.1.0.exe` altında oluşur. Bu bulut çalışmasında Windows kurulum dosyası üretilmedi; Linux dizin paketi ve Linux Electron çalışma akışı doğrulandı. Windows'ta kurulum/kaldırma, güncelleme ve SmartScreen davranışı ayrıca test edilmelidir. Dağıtım imzası/sertifikası bu sürümde yapılandırılmadı. Uygulama verileri kurulum dizininde tutulmaz; güncellemeler kullanıcı veritabanının üzerine yazmaz. Programı güncellemeden önce yedek alın.
+NSIS kurulum dosyası `release/Defter Mini Setup 1.2.0.exe` altında oluşur. Bu bulut çalışmasında Windows kurulum dosyası üretilmedi; Linux dizin paketi ve Linux Electron çalışma akışı doğrulandı. Windows'ta kurulum/kaldırma, güncelleme ve SmartScreen davranışı ayrıca test edilmelidir. Dağıtım imzası/sertifikası bu sürümde yapılandırılmadı. Uygulama verileri kurulum dizininde tutulmaz; güncellemeler kullanıcı veritabanının üzerine yazmaz. Programı güncellemeden önce yedek alın.
 
 ## Kullanım
 
@@ -103,3 +103,11 @@ Sabit gider/komisyonlar belge bazında KDV detayına sahip olmadığından giril
 Kira stopajı yalnızca açıkça etkinleştirilirse hesaplanır. Brüt kirada stopaj maliyete ikinci kez eklenmez; net kirada oran üzerinden brütleştirme farkı günlük gider olur. Ek SGK/Bağ-Kur giderlerini personel maliyetine zaten yazdıysanız bu alana tekrar yazmayın. Bordro otomasyonu yapılmaz. Fiilen ödenen vergi, geçici vergi mahsubu veya avans ayrı bilgi alanıdır ve karşılık hesabından ikinci kez düşülmez.
 
 Tüm sonuçlar işletme analizi içindir; resmi beyanname, net vergi borcu, gerçek net kâr veya fiili kasa bakiyesi iddiası yoktur.
+
+## 1.2 — belirgin net sonuç ve web sitesiyle uyumlu görünüm
+
+İcmal’de Hesapla sonrasında ve Kasa’da seçilen dönemin başında **Tüm giderler ve vergiler sonrası** kâr/zarar kartı bulunur. Aynı vergi motorunun `after` sonucu kullanılır: KDV ayrıştırılmış faaliyet sonucu eksi gelir/kurumlar vergisi karşılığı. KDV ödemesi veya ödenen vergi tekrar düşülmez. Eksik vergi bilgisi varsa sıfır kâr gösterilmez, “Hesaplanamadı” yazılır. Kasa’nın KDV dahil ara sonucu ayrı etiketlidir.
+
+Görünüm, paylaşılan web sitesi referansına göre lacivert üst menü, mor/turkuaz geçişler ve açık kartlarla yenilendi. Grafikler canlı mor, turkuaz, turuncu, pembe, mavi ve yeşil renklerle çizilir.
+
+Günlük kayıt listesi, kârlı/zararlı gün toplamları ve eğilim grafiği de vergi hesabı tam olduğunda tüm gider ve vergiler sonrası sonucu kullanır. Eksik vergi verilerinde ara değerler açıkça etiketlenir. Kâr, zarar ve başabaş durumları arayüz testinde doğrulanır.

@@ -537,6 +537,78 @@ function Value({ label, value }: { label: string; value: number | null }) {
     </div>
   );
 }
+export function NetResult({
+  after,
+  before,
+  reserve,
+  gross = null,
+  income = null,
+  period = "Günün",
+  empty = false,
+}: {
+  after: number | null;
+  before: number | null;
+  reserve: number | null;
+  gross?: number | null;
+  income?: number | null;
+  period?: string;
+  empty?: boolean;
+}) {
+  const formatted = (v: number | null) =>
+    v === null ? "Hesaplanamadı" : money(v);
+  const costs = income !== null && before !== null ? income - before : null;
+  return (
+    <section
+      className={`net-result ${after !== null && after < 0 ? "loss" : ""}`}
+      aria-label={`${period} toplam kâr zarar sonucu`}
+    >
+      <div className="net-result-main">
+        <span className="net-eyebrow">
+          {period.toLocaleUpperCase("tr-TR")} TOPLAM SONUCU
+        </span>
+        <h3>Tüm giderler ve vergiler sonrası</h3>
+        <strong className="net-amount">{formatted(after)}</strong>
+        <span className="net-status">
+          {after === null
+            ? "Bilgi eksik"
+            : after > 0
+              ? "Tahmini kâr"
+              : after < 0
+                ? "Tahmini zarar"
+                : "Başabaş"}
+        </span>
+      </div>
+      <div className="net-result-details">
+        <div>
+          <span>Toplam brüt ciro</span>
+          <b>{formatted(gross)}</b>
+        </div>
+        <div>
+          <span>KDV hariç toplam gelir</span>
+          <b>{formatted(income)}</b>
+        </div>
+        <div>
+          <span>Tüm giderler ve komisyonlar</span>
+          <b>{formatted(costs)}</b>
+        </div>
+        <div>
+          <span>Gelir / kurumlar vergisi karşılığı</span>
+          <b>{formatted(reserve)}</b>
+        </div>
+        <p>
+          {empty
+            ? "Bu tarih aralığında kayıt bulunmuyor."
+            : after === null
+              ? "Vergi profilini etkinleştirin ve eksik bilgileri tamamlayın. Önceki kayıtlardaki eksikler de dönem hesabını etkiler."
+              : "Gelirden platform/POS kesintileri, kira, muhasebe, personel, diğer tanımlı giderler ve vergi karşılığı düşülmüştür. KDV ayrıştırılır; tekrar gider sayılmaz."}
+        </p>
+        <small>
+          Stok maliyeti ve matrah bilgileri eksikse gerçek net kârı göstermez.
+        </small>
+      </div>
+    </section>
+  );
+}
 export function TaxSummary({ result: r }: { result: TaxResult }) {
   return (
     <section className="tax-summary">
@@ -581,13 +653,23 @@ export function TaxReport({
   ledger,
   from,
   to,
+  gross,
 }: {
   ledger: TaxResult[];
   from: string;
   to: string;
+  gross?: number;
 }) {
   const [detail, setDetail] = useState(false);
   const summary = taxTotals(ledger, from, to);
+  const rows = ledger.filter(
+    (r) => (!from || r.date >= from) && (!to || r.date <= to),
+  );
+  const total = (key: "grossRevenue" | "netRevenue") =>
+    rows.length && rows.every((r) => r[key] !== null)
+      ? rows.reduce((a, r) => a + (r[key] ?? 0), 0)
+      : null;
+
   const anchor =
     to || ledger.at(-1)?.date || new Date().toISOString().slice(0, 10);
   const month = taxTotals(
@@ -603,7 +685,7 @@ export function TaxReport({
   return (
     <section className="card tax-report">
       <div className="card-heading">
-        <h2>Vergi ve KDV özeti</h2>
+        <h2>Dönem sonucu ve hesap özeti</h2>
         <button className="text-button" onClick={() => setDetail(!detail)}>
           {detail ? "Ayrıntıyı gizle" : "Günlük karşılıklar"}
         </button>
@@ -612,6 +694,15 @@ export function TaxReport({
         Aylık ve yıllık toplamlar bitiş tarihinin dönemine aittir. Hesaplar tüm
         geçmiş kayıtlardan yeniden oluşturulur; eksik profiller sonuç üretmez.
       </p>
+      <NetResult
+        gross={gross ?? total("grossRevenue")}
+        income={total("netRevenue")}
+        after={summary.after}
+        before={summary.before}
+        reserve={summary.reserve}
+        period="Seçilen dönemin"
+        empty={!summary.count}
+      />
       <div className="tax-values">
         <Value label="Seçilen dönem · vergi öncesi" value={summary.before} />
         <Value label="Seçilen dönem · karşılık" value={summary.reserve} />

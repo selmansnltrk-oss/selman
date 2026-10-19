@@ -105,14 +105,12 @@ test("ayarlar girilmiş bugüne uygulanır, kira muhasebe komisyon ve vergi sonu
     .getByRole("button", { name: "Ayarlar", exact: true })
     .click();
   await page.getByLabel("Şirket tipi", { exact: true }).selectOption("Limited");
-  const fixed = page
-    .locator("section")
-    .filter({
-      has: page.getByRole("heading", {
-        name: "Aylık sabit giderler",
-        exact: true,
-      }),
-    });
+  const fixed = page.locator("section").filter({
+    has: page.getByRole("heading", {
+      name: "Aylık sabit giderler",
+      exact: true,
+    }),
+  });
   await fixed.getByLabel("Sabit gider gün esası").selectOption("30");
   await fixed
     .locator("label")
@@ -124,11 +122,9 @@ test("ayarlar girilmiş bugüne uygulanır, kira muhasebe komisyon ve vergi sonu
     .filter({ hasText: "Muhasebe ücreti" })
     .locator("input")
     .fill("3000");
-  const channels = page
-    .locator("section")
-    .filter({
-      has: page.getByRole("heading", { name: "Satış kanalları", exact: true }),
-    });
+  const channels = page.locator("section").filter({
+    has: page.getByRole("heading", { name: "Satış kanalları", exact: true }),
+  });
   await channels
     .locator(".config-row")
     .first()
@@ -172,10 +168,38 @@ test("ayarlar girilmiş bugüne uygulanır, kira muhasebe komisyon ve vergi sonu
   await expect(page.getByLabel("Yemeksepeti geliri")).toHaveValue("10.000,00");
   await page.getByRole("button", { name: "Hesapla", exact: true }).click();
   await expect(value("Vergi sonrası sonuç")).toContainText("₺3.925,00");
+  await expect(page.locator(".net-result")).toContainText("₺3.925,00");
+  await expect(page.locator(".net-result .net-status")).toHaveText(
+    "Tahmini kâr",
+  );
+  await expect(page.locator(".net-result")).toContainText("₺3.100,00");
   await page.screenshot({ path: "/tmp/defter-v1.1-tax.png", fullPage: true });
   await page
     .locator("nav")
     .getByRole("button", { name: "Kasa", exact: true })
     .click();
   await expect(page.locator(".tax-report")).toContainText("₺1.308,33");
+  await expect(page.locator(".tax-report .net-result")).toContainText(
+    "₺3.925,00",
+  );
+  await page.screenshot({ path: "/tmp/defter-v1.2-kasa.png", fullPage: true });
+  await expect(page.locator(".record")).toContainText("₺3.925,00");
+  await page
+    .locator("nav")
+    .getByRole("button", { name: "İcmal", exact: true })
+    .click();
+  await page.getByLabel("Yemeksepeti geliri").fill("0");
+  await page.getByLabel("Yemeksepeti geliri").blur();
+  await page.getByRole("button", { name: "Hesapla", exact: true }).click();
+  await expect(page.locator(".net-result .net-status")).toHaveText(
+    "Tahmini zarar",
+  );
+  await expect(page.locator(".net-result .net-amount")).toContainText(
+    "1.100,00",
+  );
+  await page.getByLabel("Yemeksepeti geliri").fill("1736,84");
+  await page.getByLabel("Yemeksepeti geliri").blur();
+  await page.getByRole("button", { name: "Hesapla", exact: true }).click();
+  await expect(page.locator(".net-result .net-status")).toHaveText("Başabaş");
+  await expect(page.locator(".net-result .net-amount")).toContainText("0,00");
 });

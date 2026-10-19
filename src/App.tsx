@@ -41,8 +41,14 @@ import {
 } from "recharts";
 import { connect, type API } from "./storage";
 import { MoneyInput, RateInput } from "./fields";
-import { taxProfile, taxLedger } from "./tax";
-import { TaxSettingsCard, DayTaxInputs, TaxSummary, TaxReport } from "./TaxUI";
+import { taxProfile, taxLedger, taxTotals } from "./tax";
+import {
+  TaxSettingsCard,
+  DayTaxInputs,
+  TaxSummary,
+  TaxReport,
+  NetResult,
+} from "./TaxUI";
 import {
   defaults,
   newDay,
@@ -60,12 +66,12 @@ import {
   summarize,
 } from "./model";
 const colors = [
-  "#0071e3",
-  "#5ca8f8",
-  "#a5cafa",
-  "#7691b5",
-  "#c7d2e5",
-  "#dce6f5",
+  "#7958ff",
+  "#16c5ce",
+  "#ffac42",
+  "#f45c9b",
+  "#3b8cff",
+  "#37c993",
 ];
 function Card({
   title,
@@ -379,6 +385,19 @@ export default function App() {
     });
   const filtered = rangeDays(days, filter.from, filter.to);
   const summary = summarize(filtered);
+  const ledger = taxLedger(days);
+  const byDate = new Map(ledger.map((r) => [r.date, r]));
+  const periodTax = taxTotals(ledger, filter.from, filter.to);
+  const hasFinal = periodTax.after !== null;
+  const netProfit = filtered.reduce(
+    (a, d) => a + Math.max(0, byDate.get(d.date)?.after ?? 0),
+    0,
+  );
+  const netLoss = filtered.reduce(
+    (a, d) => a + Math.max(0, -(byDate.get(d.date)?.after ?? 0)),
+    0,
+  );
+
   const selectedDay = filtered.find((d) => d.date === selected);
   const distribution = new Map<string, number>();
   for (const d of filtered)
@@ -1119,6 +1138,21 @@ export default function App() {
               </div>
               {computed ? (
                 <>
+                  <NetResult
+                    {...(() => {
+                      const r = taxLedger([
+                        ...days.filter((d) => d.date !== day.date),
+                        day,
+                      ]).find((r) => r.date === day.date)!;
+                      return {
+                        gross: r.grossRevenue ?? computed.gross,
+                        income: r.netRevenue,
+                        after: r.after,
+                        before: r.before,
+                        reserve: r.reserve,
+                      };
+                    })()}
+                  />
                   <div className="result-stats">
                     <Stat
                       label={
@@ -1253,6 +1287,7 @@ export default function App() {
                 <option value="all">Tüm zamanlar</option>
               </select>
             </div>
+            <TaxReport ledger={ledger} from={filter.from} to={filter.to} />
             <div className="report-stats">
               <Stat
                 label="Toplam ciro / tahsilat"
@@ -1266,26 +1301,34 @@ export default function App() {
                 sub="Tüm maliyet ve kesintiler"
               />
               <Stat
-                label="Kârlı günler toplamı"
-                value={summary.profit}
+                label={
+                  hasFinal
+                    ? "Vergi sonrası kârlı günler"
+                    : "KDV dahil kârlı günler (ara)"
+                }
+                value={hasFinal ? netProfit : summary.profit}
                 kind="positive"
               />
               <Stat
-                label="Zararlı günler toplamı"
-                value={summary.loss}
+                label={
+                  hasFinal
+                    ? "Vergi sonrası zararlı günler"
+                    : "KDV dahil zararlı günler (ara)"
+                }
+                value={hasFinal ? netLoss : summary.loss}
                 kind="negative"
               />
               <Stat
-                label="Dönem sonucu"
-                value={summary.result}
-                kind={summary.result >= 0 ? "positive" : "negative"}
+                label={hasFinal ? "Dönem net sonucu" : "KDV dahil ara sonuç"}
+                value={periodTax.after ?? summary.result}
+                kind={
+                  (periodTax.after ?? summary.result) >= 0
+                    ? "positive"
+                    : "negative"
+                }
               />
             </div>
-            <TaxReport
-              ledger={taxLedger(days)}
-              from={filter.from}
-              to={filter.to}
-            />
+
             <div className="report-grid">
               <Card
                 title="Günlük kayıtlar"
@@ -1298,6 +1341,8 @@ export default function App() {
                   )}
                   {filtered.map((d) => {
                     const c = calculate(d);
+                    const final = byDate.get(d.date)?.after;
+                    const shown = final ?? c.result;
                     return (
                       <button
                         key={d.date}
@@ -1310,13 +1355,16 @@ export default function App() {
                           <b>{humanDate(d.date)}</b>
                           <small>
                             {d.expenses.length} gider · {d.employees.length}{" "}
-                            personel
+                            personel ·{" "}
+                            {final === null || final === undefined
+                              ? "Vergi hariç ara sonuç"
+                              : "Tüm gider ve vergiler sonrası"}
                           </small>
                         </span>
                         <span
-                          className={c.result >= 0 ? "text-green" : "text-red"}
+                          className={shown >= 0 ? "text-green" : "text-red"}
                         >
-                          {money(c.result)}
+                          {money(shown)}
                           <ChevronRight size={14} />
                         </span>
                       </button>
@@ -1335,6 +1383,7 @@ export default function App() {
                         <ResponsiveContainer width="100%" height={215}>
                           <PieChart>
                             <Pie
+                              isAnimationActive={false}
                               data={pie}
                               dataKey="value"
                               innerRadius={68}
@@ -1381,6 +1430,7 @@ export default function App() {
                       <ResponsiveContainer width="100%" height={190}>
                         <PieChart>
                           <Pie
+                            isAnimationActive={false}
                             data={expenseDist}
                             dataKey="value"
                             outerRadius={80}
@@ -1421,19 +1471,21 @@ export default function App() {
                   <AreaChart
                     data={[...filtered].reverse().map((d) => ({
                       date: d.date.slice(5).split("-").reverse().join("."),
-                      sonuç: calculate(d).result / 100,
+                      sonuç: hasFinal
+                        ? byDate.get(d.date)!.after! / 100
+                        : calculate(d).result / 100,
                     }))}
                   >
                     <defs>
                       <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
                         <stop
                           offset="0%"
-                          stopColor="#0071e3"
+                          stopColor="#7958ff"
                           stopOpacity={0.2}
                         />
                         <stop
                           offset="100%"
-                          stopColor="#0071e3"
+                          stopColor="#7958ff"
                           stopOpacity={0}
                         />
                       </linearGradient>
@@ -1461,10 +1513,15 @@ export default function App() {
                     />
                     <Tooltip formatter={(v) => money(Number(v) * 100)} />
                     <Area
+                      isAnimationActive={false}
                       type="monotone"
                       dataKey="sonuç"
-                      name="Tahmini sonuç"
-                      stroke="#0071e3"
+                      name={
+                        hasFinal
+                          ? "Tüm gider ve vergiler sonrası"
+                          : "KDV dahil ara sonuç"
+                      }
+                      stroke="#7958ff"
                       fill="url(#area)"
                       strokeWidth={2}
                     />
@@ -2118,7 +2175,7 @@ export default function App() {
           </span>
           <span>
             <span className="local-dot" /> Çevrimdışı çalışır{" "}
-            <span className="footer-dot">·</span> v1.1
+            <span className="footer-dot">·</span> v1.2
           </span>
         </footer>
       </main>
