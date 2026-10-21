@@ -62,7 +62,7 @@ Yalnızca şu iki plan kabul edilir:
 
 | Plan          | Plan ID                                | Gösterim fiyatı |
 | ------------- | -------------------------------------- | --------------- |
-| Aylık Üyelik  | `8ca42153-8cfb-4f1a-ad5a-7819a781ec42` | 119 TL/ay       |
+| Aylık Üyelik  | `e8ad2153-8cfb-4f1a-ad5a-7819a781ec42` | 119 TL/ay       |
 | Yıllık Üyelik | `77a5c1a3-b8b6-4669-b346-570a06a05778` | 899 TL/yıl      |
 
 Fiyat erişim ispatı değildir. `buyer.memberId` doğrulanmış üyeyle ayrıca eşleşir. İleri başlangıç, bitmiş/bozuk tarih, `PAUSED`, `ENDED`, `DRAFT`, `PENDING`, bilinmeyen durum ve aktif pause dönemi engellenir. Ödeme `PAID` veya Wix’in “ödeme gerekli değil” anlamındaki `NOT_APPLICABLE` durumu olmalıdır. `NOT_APPLICABLE` için varsayımsal deneme dönemi indeksi aranmaz; gerçek aktif durum, sahiplik ve tarihler kontrol edilir. Ödeme `FAILED`, `UNPAID`, `REFUNDED` veya `PENDING` ise ihtiyatlı biçimde erişim verilmez; başarısız ödeme için uygulama kendi sınırsız tolerans dönemi yaratmaz. Özel Wix tahsilat/retry/grace kuralı isteniyorsa gerçek site siparişleriyle ayrıca doğrulanmalıdır.

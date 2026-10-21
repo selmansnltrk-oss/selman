@@ -1,7 +1,7 @@
 export const SITE_ID = "ece5420a-0b61-4879-8872-0e899f7628b5";
 export const PLANS: Record<string, { label: string; price: string }> =
   Object.freeze({
-    "8ca42153-8cfb-4f1a-ad5a-7819a781ec42": {
+    "e8ad2153-8cfb-4f1a-ad5a-7819a781ec42": {
       label: "Aylık Üyelik",
       price: "119 TL/ay",
     },

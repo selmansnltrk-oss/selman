@@ -66,3 +66,15 @@ it("accepts Wix no-payment-needed active grants, still rejects other owners and 
       entitlement([{ ...order, ...patch }], "verified-member", now),
     ).toBeNull();
 });
+
+it("accepts the monthly plan ID shown in Wix and rejects the previously mistyped ID", () => {
+  const now = Date.now();
+  const order = {
+    _id: "test-order", planId: "e8ad2153-8cfb-4f1a-ad5a-7819a781ec42",
+    buyer: { memberId: "verified-member" }, status: "ACTIVE",
+    lastPaymentStatus: "PAID", startDate: new Date(now - 60000),
+    endDate: new Date(now + 60000),
+  };
+  expect(entitlement([order], "verified-member", now)?.planName).toBe("Aylık Üyelik");
+  expect(entitlement([{ ...order, planId: "8ca42153-8cfb-4f1a-ad5a-7819a781ec42" }], "verified-member", now)).toBeNull();
+});

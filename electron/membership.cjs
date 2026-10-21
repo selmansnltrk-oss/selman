@@ -17,7 +17,7 @@ const payload = z.object({
     .object({
       orderId: z.string(),
       planId: z.enum([
-        "8ca42153-8cfb-4f1a-ad5a-7819a781ec42",
+        "e8ad2153-8cfb-4f1a-ad5a-7819a781ec42",
         "77a5c1a3-b8b6-4669-b346-570a06a05778",
       ]),
       planName: z.string(),
