@@ -47,3 +47,18 @@ Finans SQLite dosyası kullanıcı bilgisayarında kalır. İcmal, Kasa, Ayarlar
 `/healthz` HTTP 200 döndürmesi yalnızca API'nin çalıştığını gösterir; Wix bağlantısını doğrulamaz (`wixConnectionChecked:false`). Kök `/` adresinin 404 vermesi normaldir; bu bir web arayüzü değildir. Gerçek Wix girişinin, aylık/yıllık aboneliğin ve iptal/sona erme durumlarının canlı testi ayrıca yapılmalıdır. Bu depodaki yerel testler gerçek Wix testinin yerine geçmez.
 
 Resmi Render referansları: [Node sürümü](https://render.com/docs/node-version), [ortam değişkenleri](https://render.com/docs/environment-variables), [ücretsiz servis sınırları](https://render.com/docs/free), [port bağlama](https://render.com/docs/web-services#port-binding).
+
+## Başlangıç hatalarını ayırt etme
+
+`Backend başlatılamadı [configuration]: DEĞİŞKEN: ...` mesajı yalnızca alan adını ve gerekli formatı gösterir; girilmiş değerler, Zod hata nesnesi ve stack loglanmaz. Port tarama zaman aşımı, süreç yapılandırma hatasından kapandığında oluşan ikincil belirtidir. `[database]` SQLite yolunu/izinlerini, `[listen]` HOST/PORT bağlama sorununu belirtir. Doğrulama hatası varken sağlık endpoint'i açılmaz; güvenlik kontrolünü geçersiz kılıp servisi sağlıklı göstermeyiz.
+
+- `WIX_CLIENT_ID`: 36 karakterlik UUID; yukarıdaki Headless Client ID.
+- `WIX_SITE_ID`: yukarıdaki proje Site ID'si ile birebir aynı olmalı.
+- `SERVER_DATA_KEY`: en az uzunluk kuralı değil, tam 32 bayt standart base64 (44 karakter, sonunda `=`) zorunlu. Render'ın rastgele ürettiği hex/metin bu format yerine geçmez. Yukarıdaki Node komutuyla üretin; değiştirmek mevcut sunucu oturumlarını okunamaz yapar, yeniden giriş gerekir. Finans dosyasına etki etmez.
+- `PUBLIC_ORIGIN`: varsa HTTPS kök adresi; yol, sorgu, fragment ve kullanıcı bilgisi içeremez. Yanlışsa Render'dan silin; `RENDER_EXTERNAL_URL` otomatik kullanılır. Açıkça girilen değer otomatik değerden önceliklidir.
+- `HOST`: boş olamaz; Render'da `0.0.0.0`.
+- `PORT`: Render sağlar; 1–65535 arası tam sayı. Elle boş/geçersiz değer tanımlamayın.
+- `NODE_ENV`: `production`; `ALLOW_LOCAL_HTTP`: `false`.
+- `DATABASE_PATH`: boş olamaz; ücretsiz servis için `:memory:`.
+
+Başlatma regresyon testleri derlenmiş gerçek Node sunucusunu çalıştırır: `npm run server:build && npm test`.
