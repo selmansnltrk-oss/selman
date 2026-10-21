@@ -117,3 +117,5 @@ Tüm sonuçlar işletme analizi içindir; resmi beyanname, net vergi borcu, ger�
 Görünüm, paylaşılan web sitesi referansına göre lacivert üst menü, mor/turkuaz geçişler ve açık kartlarla yenilendi. Grafikler canlı mor, turkuaz, turuncu, pembe, mavi ve yeşil renklerle çizilir.
 
 Günlük kayıt listesi, kârlı/zararlı gün toplamları ve eğilim grafiği de vergi hesabı tam olduğunda tüm gider ve vergiler sonrası sonucu kullanır. Eksik vergi verilerinde ara değerler açıkça etiketlenir. Kâr, zarar ve başabaş durumları arayüz testinde doğrulanır.
+
+Windows kurulum EXE'si oluşturma ve GitHub'dan indirme: [Windows yönergesi](docs/WINDOWS.md).

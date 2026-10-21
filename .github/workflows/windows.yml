@@ -1,0 +1,39 @@
+name: Windows uygulamasini olustur
+on:
+  workflow_dispatch:
+    inputs:
+      backend_origin:
+        description: 'Render HTTPS kok adresi (sonunda / olmadan)'
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    env:
+      DEFTER_MEMBERSHIP_API_ORIGIN: ${{ inputs.backend_origin }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            server/package-lock.json
+      - name: Backend adresini dogrula
+        run: node scripts/write-membership-config.cjs --required
+      - run: npm ci
+      - run: npm --prefix server ci
+      - run: npm run server:build
+      - run: npm test
+      - name: Windows kurulum dosyasini olustur
+        run: npm run dist:win -- --publish never
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Defter-Mini-Windows
+          path: release/*.exe
+          if-no-files-found: error
+          retention-days: 14

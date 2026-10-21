@@ -1,6 +1,9 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const origin = process.env.DEFTER_MEMBERSHIP_API_ORIGIN || "";
+if (!origin && process.argv.includes("--required")) {
+  throw Error("Windows paketi için DEFTER_MEMBERSHIP_API_ORIGIN gerekli. Gerçek Render HTTPS kök adresini .env dosyasına veya derleme ortamına girin.");
+}
 if (origin) {
   const u = new URL(origin);
   if (
