@@ -157,11 +157,20 @@ export class MembershipService {
         } satisfies Session,
         s.expires,
       );
+      const rejected: Record<string, number> = {};
       const subscription = entitlement(
         current.orders,
         current.member._id,
         this.now(),
+        (reason) => {
+          rejected[reason] = (rejected[reason] ?? 0) + 1;
+        },
       );
+      if (!subscription)
+        console.info(
+          "Membership denied",
+          JSON.stringify({ orderCount: current.orders.length, rejected }),
+        );
       return {
         member: current.member,
         access: subscription !== null,

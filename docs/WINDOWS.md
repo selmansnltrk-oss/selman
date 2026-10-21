@@ -33,3 +33,7 @@ npm run dist:win
 Kurulum EXE'si `release` klasöründe oluşur. Geliştirme sürümünü kurulum oluşturmadan açmak için `npm run desktop` veya `BASLAT.cmd` kullanın. Windows paketleme komutu backend adresi boşsa hata verir; masaüstü geliştirme komutu ise boş adreste güvenli kilit ekranını açar.
 
 Render Environment ayarları masaüstündeki `.env` dosyasını kendiliğinden doldurmaz. Render adresi değişirse masaüstü yeniden paketlenmelidir. Ücretsiz Render yeniden başlatılınca oturum kaybolabilir; yeniden giriş gerekir. Yerel finans SQLite dosyası backend'e gönderilmez veya bu derleme işlemiyle silinmez.
+
+## İşletme türü ve geçmiş kayıtlar
+
+Ayarlar → İşletme türü → Kafe / Restoran (eski Restoran / Kafe seçimi de desteklenir) → Ayarları kaydet. Yeni günlerde yemek platformları görünür; diğer türlerde yeni günler genel satış kanallarıyla başlar. Kaydedilmemiş taslakta tür değişince sıfır tutarlı yemek alanları gizlenir. Tutarı girilmiş alanlar kaybolmaz. Kaydedilmiş günler kendi tür anlık görüntüsünü korur; eski, tür bilgisi olmayan kayıtlar tüm mevcut kanalları gösterir. İşletme türünü kaydetmek geçmiş finans kayıtlarını topluca dönüştürmez.

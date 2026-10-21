@@ -13,7 +13,7 @@ export const PLANS: Record<string, { label: string; price: string }> =
 export interface WixOrder {
   _id?: string;
   planId?: string;
-  buyer?: { memberId?: string };
+  buyer?: { memberId?: string; contactId?: string };
   status?: string;
   lastPaymentStatus?: string;
   startDate?: Date | string | null;
@@ -40,15 +40,18 @@ export function entitlement(
   orders: WixOrder[],
   memberId: string,
   now = Date.now(),
+  onReject?: (reason: string) => void,
 ) {
+  const reject = (reason: string) => {
+    onReject?.(reason);
+    return [];
+  };
   const eligible = orders.flatMap((order) => {
-    if (
-      !order._id ||
-      !order.planId ||
-      !PLANS[order.planId] ||
-      order.buyer?.memberId !== memberId
-    )
-      return [];
+    if (!order._id) return reject("missing_order_id");
+    if (!order.planId || !Object.hasOwn(PLANS, order.planId))
+      return reject("plan_not_allowed");
+    // contactId is a different identifier; never compare it with memberId.
+    if (order.buyer?.memberId !== memberId) return reject("member_mismatch");
     const start = timestamp(order.startDate),
       end = timestamp(order.endDate),
       cycle = timestamp(order.currentCycle?.endedDate);
@@ -59,25 +62,25 @@ export function entitlement(
       (end !== null && (!Number.isFinite(end) || end <= now)) ||
       (cycle !== null && !Number.isFinite(cycle))
     )
-      return [];
-    if (order.pausePeriods?.some((p) => p.status === "ACTIVE")) return [];
-    if (order.autoRenewCanceled === true && end === null) return [];
-    const paid = order.lastPaymentStatus === "PAID";
-    // NOT_APPLICABLE is valid only for an explicit, time-bounded Wix trial.
-    const trial =
-      order.lastPaymentStatus === "NOT_APPLICABLE" &&
-      order.currentCycle?.index === 0 &&
-      cycle !== null &&
-      cycle > now;
-    if (!paid && !trial) return [];
+      return reject("invalid_or_expired_dates");
+    if (order.pausePeriods?.some((p) => p.status === "ACTIVE"))
+      return reject("paused");
+    if (order.autoRenewCanceled === true && end === null)
+      return reject("canceled_without_end");
+    // Wix NOT_APPLICABLE means no payment was necessary (free/assigned plans
+    // or trials). It is not an unpaid/failed payment and requires no cycle index.
+    const paid =
+      order.lastPaymentStatus === "PAID" ||
+      order.lastPaymentStatus === "NOT_APPLICABLE";
+    if (!paid) return reject("payment_not_entitled");
     if (order.status === "CANCELED") {
       if (
         order.cancellation?.effectiveAt !== "NEXT_PAYMENT_DATE" ||
         end === null ||
         end <= now
       )
-        return [];
-    } else if (order.status !== "ACTIVE") return [];
+        return reject("cancellation_effective");
+    } else if (order.status !== "ACTIVE") return reject("status_not_active");
     // Do not infer expiry by adding 30/365 days or by using displayed plan prices.
     const accessUntil = end === null ? null : new Date(end).toISOString();
     const refreshAt = Math.min(

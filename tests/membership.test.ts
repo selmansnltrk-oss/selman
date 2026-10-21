@@ -218,7 +218,7 @@ describe("Gerçek sipariş durumlarına dayalı erişim politikası (fixture tes
         "member",
         now,
       ),
-    ).toBeNull();
+    ).not.toBeNull();
   });
 });
 describe("Sunucu OAuth, oturum ve doğrulama", () => {
@@ -348,9 +348,12 @@ describe("Sunucu OAuth, oturum ve doğrulama", () => {
     expect(config.HOST).toBe("0.0.0.0");
     expect(config.PORT).toBe(10000);
     expect(config.callback).toBe("https://render-test.example/auth/callback");
-    expect(loadConfig({ ...env, PUBLIC_ORIGIN: "https://custom.example" }).callback)
-      .toBe("https://custom.example/auth/callback");
-    expect(() => loadConfig({ ...env, RENDER_EXTERNAL_URL: "http://render-test.example" })).toThrow();
+    expect(
+      loadConfig({ ...env, PUBLIC_ORIGIN: "https://custom.example" }).callback,
+    ).toBe("https://custom.example/auth/callback");
+    expect(() =>
+      loadConfig({ ...env, RENDER_EXTERNAL_URL: "http://render-test.example" }),
+    ).toThrow();
   });
   it("üretimde eksik kimlik bilgilerini ve HTTP originini reddeder", () => {
     expect(() => loadConfig({})).toThrow();

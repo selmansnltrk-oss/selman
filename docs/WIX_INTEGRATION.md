@@ -65,7 +65,7 @@ Yalnızca şu iki plan kabul edilir:
 | Aylık Üyelik  | `8ca42153-8cfb-4f1a-ad5a-7819a781ec42` | 119 TL/ay       |
 | Yıllık Üyelik | `77a5c1a3-b8b6-4669-b346-570a06a05778` | 899 TL/yıl      |
 
-Fiyat erişim ispatı değildir. `buyer.memberId` doğrulanmış üyeyle ayrıca eşleşir. İleri başlangıç, bitmiş/bozuk tarih, `PAUSED`, `ENDED`, `DRAFT`, `PENDING`, bilinmeyen durum ve aktif pause dönemi engellenir. Genel olarak ödeme `PAID` olmalıdır. Wix’in açıkça `currentCycle.index=0`, `NOT_APPLICABLE` ve gelecekteki dönem bitişi bildirdiği süreli denemeler de desteklenir. Ödeme `FAILED`, `UNPAID`, `REFUNDED` veya `PENDING` ise ihtiyatlı biçimde erişim verilmez; başarısız ödeme için uygulama kendi sınırsız tolerans dönemi yaratmaz. Özel Wix tahsilat/retry/grace kuralı isteniyorsa gerçek site siparişleriyle ayrıca doğrulanmalıdır.
+Fiyat erişim ispatı değildir. `buyer.memberId` doğrulanmış üyeyle ayrıca eşleşir. İleri başlangıç, bitmiş/bozuk tarih, `PAUSED`, `ENDED`, `DRAFT`, `PENDING`, bilinmeyen durum ve aktif pause dönemi engellenir. Ödeme `PAID` veya Wix’in “ödeme gerekli değil” anlamındaki `NOT_APPLICABLE` durumu olmalıdır. `NOT_APPLICABLE` için varsayımsal deneme dönemi indeksi aranmaz; gerçek aktif durum, sahiplik ve tarihler kontrol edilir. Ödeme `FAILED`, `UNPAID`, `REFUNDED` veya `PENDING` ise ihtiyatlı biçimde erişim verilmez; başarısız ödeme için uygulama kendi sınırsız tolerans dönemi yaratmaz. Özel Wix tahsilat/retry/grace kuralı isteniyorsa gerçek site siparişleriyle ayrıca doğrulanmalıdır.
 
 İptal `NEXT_PAYMENT_DATE` ise ve gerçek `endDate` gelecekteyse ödenmiş dönemin bitimine kadar erişim korunur. `IMMEDIATELY` iptali ve bitiş tarihi olmayan iptal kabul edilmez. Aktif, iptal edilene kadar geçerli düzenli siparişte `endDate` boş olabilir; uygulama 30/365 gün ekleyerek sahte bitiş oluşturmaz.
 
@@ -138,3 +138,13 @@ Canlı OAuth client + host sağlandıktan sonra iki plan, aboneliksiz hesap, ipt
 - Dokümantasyon ve komutlar: README, bu kılavuz, kök package scripts/lockfile ve gitignore. Dockerfile hazırlandı ancak bu görevde Docker imajı veya Windows kurulum dosyası oluşturulmadı.
 
 Son yerel sonuç: 70 otomatik birim/entegrasyon testi ve 5 tarayıcı testi geçti; gerçek Electron kilit/IPC/SQLite koruma kontrolü geçti. Test doubles yalnızca test dosyalarında kullanıldı. Hiçbir sonuç gerçek Wix aboneliğinin doğrulandığı anlamına gelmez.
+
+## Aktif üyeliğin yanlış reddedilmesi: teşhis ve düzeltme
+
+Wix SDK `PaymentStatus.NOT_APPLICABLE` alanını “ödeme gerekli değildi; örneğin ücretsiz plan veya deneme” olarak tanımlar. Önceki kod yalnızca `currentCycle.index === 0` ve gelecek cycle bitişi varsa bunu kabul ediyordu. Bu gereksiz kısıt kaldırıldı: izinli plan + doğrulanmış `buyer.memberId` + geçerli başlangıç/bitiş + ACTIVE (veya gelecekte yürürlüğe girecek iptal) ve PAID/NOT_APPLICABLE gerekir. FAILED, UNPAID, PENDING, REFUNDED kabul edilmez. Eksik ödeme durumu da erişim vermez. Yönetim panelinden ücretsiz/ödeme gerekmeyen üyelik atamak Wix tarafında erişim tanımak anlamına gelir; normal ödenmemiş üyelikler bu yolla otomatik kabul edilmez.
+
+Sipariş sorgusu OAuth ile doğrulanmış üyenin `memberListOrders` metodudur; yönetici anahtarı veya istemciden gelen member ID kullanılmaz. Artık sorguda plan filtresiyle bilgi gizlenmez; tüm üye siparişleri sayfalanır, sabit iki plan ID'si sunucudaki politikada kontrol edilir. Sipariş `_id`, plan ID ve `buyer.memberId` ayrı kimliklerdir; `contactId` üye ID'sinin yerine geçmez. E-posta/isim benzerliğiyle başka üyeye erişim açılmaz. Hatalı veya orders alanı eksik API cevabı boş liste sayılmaz: doğrulama hatasıdır; mevcut istemci bağlantı/doğrulama hatası göstererek erişimi kapatır.
+
+Erişim reddinde Render loguna `Membership denied` ile yalnızca sipariş sayısı ve neden sayaçları yazılır: `plan_not_allowed`, `member_mismatch`, `payment_not_entitled`, `invalid_or_expired_dates`, `paused`, `canceled_without_end`, `cancellation_effective`, `status_not_active`, `missing_order_id`. Token, e-posta, contact/member/order ID veya sipariş içeriği loglanmaz. `orderCount:0` ise Wix bu oturumdaki üyeye hiç sipariş döndürmemiştir; Wix'teki üyelik sahibini ve kullanılan site/Headless istemcisini kontrol edin. Sıfırdan farklı sayılarda sayaç hangi kontrole takıldığını gösterir.
+
+Bu düzeltme olası yanlış ret yolunu testlerle doğrular; belirli bir canlı hesabın ödeme durumu ve ret sebebi Render logu görülmeden kesinleşmez. Backend değişikliği için Render'da son main commit'i yeniden dağıtın. İcmal değişiklikleri için Windows kurulumunu yeniden oluşturun.

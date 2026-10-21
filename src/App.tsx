@@ -51,6 +51,7 @@ import {
 } from "./TaxUI";
 import {
   defaults,
+  visibleIncomes,
   newDay,
   calculate,
   money,
@@ -630,7 +631,7 @@ export default function App() {
                   Satış kanallarına göre günlük gelirleriniz
                 </p>
                 <div className="incomes">
-                  {day.incomes.map((inc, index) => (
+                  {visibleIncomes(day).map((inc, index) => (
                     <div className="income-row" key={inc.id}>
                       <div className="income-label">
                         <span className={"channel-logo channel-" + index}>
@@ -1675,6 +1676,7 @@ export default function App() {
                   <label>
                     İşletme türü
                     <select
+                      aria-label="İşletme türü"
                       value={settingsDraft.type}
                       onChange={(e) =>
                         updateSettings({
@@ -1685,6 +1687,7 @@ export default function App() {
                     >
                       {[
                         "Restoran / Kafe",
+                        "Kafe / Restoran",
                         "Market",
                         "Berber / Kuaför",
                         "Mağaza",
@@ -2154,7 +2157,12 @@ export default function App() {
                       day.date === today() ||
                       !days.some((d) => d.date === day.date)
                     ) {
-                      setDay(applySettingsToDay(day, s));
+                      setDay({
+                        ...applySettingsToDay(day, s),
+                        ...(!days.some((d) => d.date === day.date)
+                          ? { businessType: s.type }
+                          : {}),
+                      });
                       setDirty(true);
                       setComputed(null);
                     }

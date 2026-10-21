@@ -203,3 +203,40 @@ test("ayarlar girilmiş bugüne uygulanır, kira muhasebe komisyon ve vergi sonu
   await expect(page.locator(".net-result .net-status")).toHaveText("Başabaş");
   await expect(page.locator(".net-result .net-amount")).toContainText("0,00");
 });
+
+test("işletme türü kaydedilince yemek kanalları gizlenir ve yeniden gösterilir", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.getByLabel("Yemeksepeti geliri")).toBeVisible();
+  await page
+    .locator("nav")
+    .getByRole("button", { name: "Ayarlar", exact: true })
+    .click();
+  await page.getByLabel("İşletme türü", { exact: true }).selectOption("Market");
+  await page
+    .getByRole("button", { name: "Ayarları kaydet", exact: true })
+    .click();
+  await page
+    .locator("nav")
+    .getByRole("button", { name: "İcmal", exact: true })
+    .click();
+  await expect(page.getByLabel("Yemeksepeti geliri")).toHaveCount(0);
+  await expect(page.getByLabel("Mağaza içi satış geliri")).toBeVisible();
+  await page
+    .locator("nav")
+    .getByRole("button", { name: "Ayarlar", exact: true })
+    .click();
+  await page
+    .getByLabel("İşletme türü", { exact: true })
+    .selectOption("Kafe / Restoran");
+  await page
+    .getByRole("button", { name: "Ayarları kaydet", exact: true })
+    .click();
+  await page
+    .locator("nav")
+    .getByRole("button", { name: "İcmal", exact: true })
+    .click();
+  await expect(page.getByLabel("Yemeksepeti geliri")).toBeVisible();
+  await expect(page.getByLabel("Uber Eats geliri")).toBeVisible();
+});

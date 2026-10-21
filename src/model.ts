@@ -40,6 +40,7 @@ export const settingsSchema = z.object({
 });
 export const daySchema = z.object({
   date: dateSchema,
+  businessType: z.string().max(100).optional(),
   incomes: z
     .array(
       z.object({
@@ -136,8 +137,8 @@ export const defaults: Settings = {
   channels: [
     { id: "yemek", name: "Yemeksepeti", rate: 0 },
     { id: "getir", name: "Getir", rate: 0 },
-    { id: "uber", name: "Uber", rate: 0 },
-    { id: "migros", name: "Migros", rate: 0 },
+    { id: "uber", name: "Uber Eats", rate: 0 },
+    { id: "migros", name: "Migros Yemek", rate: 0 },
     { id: "store", name: "Mağaza içi satış", rate: 0 },
   ],
   pos: [{ id: "pos", name: "POS cihazı", rate: 0 }],
@@ -146,16 +147,37 @@ export const defaults: Settings = {
   otherRate: 0,
   employees: [],
 };
+export const isFoodBusiness = (type: string) =>
+  ["Restoran / Kafe", "Kafe / Restoran"].includes(type);
+export function isFoodChannel(channel: { id: string; name: string }) {
+  return (
+    ["yemek", "getir", "uber", "migros"].includes(channel.id) ||
+    /yemeksepeti|trendyol.*yemek|getir|uber|migros.*yemek/i.test(channel.name)
+  );
+}
+export function visibleIncomes(day: Day) {
+  // Old snapshots have no type. Show them exactly as before; never hide amounts.
+  return day.incomes.filter(
+    (i) =>
+      !day.businessType ||
+      isFoodBusiness(day.businessType) ||
+      !isFoodChannel(i) ||
+      i.amount > 0,
+  );
+}
 export function newDay(s: Settings, date = today()): Day {
   return {
     date,
-    incomes: s.channels.map((c) => ({
-      ...c,
-      amount: 0,
-      mode: "gross",
-      vat: (s.tax ?? taxProfile(s.company)).vatDefault,
-      vatIncluded: (s.tax ?? taxProfile(s.company)).vatIncluded,
-    })),
+    businessType: s.type,
+    incomes: s.channels
+      .filter((c) => isFoodBusiness(s.type) || !isFoodChannel(c))
+      .map((c) => ({
+        ...c,
+        amount: 0,
+        mode: "gross",
+        vat: (s.tax ?? taxProfile(s.company)).vatDefault,
+        vatIncluded: (s.tax ?? taxProfile(s.company)).vatIncluded,
+      })),
     pos: s.pos.map((p) => ({ ...p, amount: 0 })),
     employees: s.employees.map((e) => ({ ...e, payment: 0 })),
     expenses: [],

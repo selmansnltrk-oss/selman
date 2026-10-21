@@ -1,7 +1,7 @@
 import { createClient, OAuthStrategy, type Tokens } from "@wix/sdk";
 import { members } from "@wix/members";
 import { orders } from "@wix/pricing-plans";
-import { PLANS, type WixOrder } from "./policy.js";
+import { type WixOrder } from "./policy.js";
 export type OAuthData = ReturnType<
   ReturnType<typeof OAuthStrategy>["generateOAuthData"]
 >;
@@ -54,11 +54,11 @@ export class WixProvider implements Provider {
     const all: WixOrder[] = [];
     for (let offset = 0; offset < 5000; offset += 50) {
       const page = await client.orders.memberListOrders({
-        planIds: Object.keys(PLANS),
         limit: 50,
         offset,
       });
-      const items = page.orders ?? [];
+      if (!Array.isArray(page.orders)) throw Error("INVALID_ORDER_RESPONSE");
+      const items = page.orders;
       all.push(...items);
       if (items.length < 50)
         return {
