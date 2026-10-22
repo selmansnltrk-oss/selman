@@ -1,3 +1,4 @@
+import { useConfirm } from "./ConfirmDialog";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   BookOpen,
@@ -150,6 +151,7 @@ function employee(name = ""): Employee {
   };
 }
 export default function App() {
+  const confirm = useConfirm();
   const [api, setApi] = useState<API | null>(null);
   const [settings, setSettings] = useState<Settings>(defaults);
   const [settingsDraft, setSettingsDraft] = useState<Settings>(defaults);
@@ -241,13 +243,13 @@ export default function App() {
     setSettingsDraft(s);
     setSettingsDirty(true);
   };
-  const allowLeave = () =>
+  const allowLeave = async () =>
     !dirty ||
-    confirm(
+    (await confirm(
       "Kaydedilmemiş günlük değişiklikler var. Değişiklikler bırakılsın mı?",
-    );
-  const openDay = (date: string) => {
-    if (!allowLeave()) return;
+    ));
+  const openDay = async (date: string) => {
+    if (!(await allowLeave())) return;
     setDay(days.find((d) => d.date === date) ?? newDay(settings, date));
     setDirty(false);
     setComputed(null);
@@ -315,7 +317,11 @@ export default function App() {
     run(async () => {
       if (!api) return;
       if (dirty || settingsDirty) {
-        if (!confirm("Kaydedilmemiş değişiklikler bırakılıp demo eklensin mi?"))
+        if (
+          !(await confirm(
+            "Kaydedilmemiş değişiklikler bırakılıp demo eklensin mi?",
+          ))
+        )
           return;
       }
       const s: Settings = {
@@ -564,7 +570,7 @@ export default function App() {
               <div className="date-control">
                 <button
                   aria-label="Önceki gün"
-                  onClick={() => {
+                  onClick={async () => {
                     const d = new Date(day.date + "T12:00:00");
                     d.setDate(d.getDate() - 1);
                     openDay(
@@ -585,7 +591,7 @@ export default function App() {
                 />
                 <button
                   aria-label="Sonraki gün"
-                  onClick={() => {
+                  onClick={async () => {
                     const d = new Date(day.date + "T12:00:00");
                     d.setDate(d.getDate() + 1);
                     openDay(
@@ -601,9 +607,9 @@ export default function App() {
               <p>Güne kaydedilen komisyonlar ve sabit giderler kullanılır.</p>
               <button
                 className="button secondary small"
-                onClick={() => {
+                onClick={async () => {
                   if (
-                    confirm(
+                    await confirm(
                       "Güncel komisyonlar, sabit giderler ve vergi profili bu güne uygulansın mı? Girilen tutarlar korunur.",
                     )
                   ) {
@@ -787,9 +793,9 @@ export default function App() {
                         <button
                           className="icon-button danger"
                           aria-label={e.name + " sil"}
-                          onClick={() => {
+                          onClick={async () => {
                             if (
-                              confirm(
+                              await confirm(
                                 "Personel bu günlük kayıttan çıkarılsın mı?",
                               )
                             )
@@ -922,8 +928,8 @@ export default function App() {
                         <button
                           className="icon-button danger"
                           aria-label={e.description + " sil"}
-                          onClick={() => {
-                            if (confirm("Bu gider silinsin mi?"))
+                          onClick={async () => {
+                            if (await confirm("Bu gider silinsin mi?"))
                               change({
                                 ...day,
                                 expenses: day.expenses.filter(
@@ -1112,7 +1118,7 @@ export default function App() {
                   <button
                     className="button secondary"
                     disabled={busy || !api}
-                    onClick={() => {
+                    onClick={async () => {
                       if (document.querySelector(".money-input.invalid")) {
                         setError("Hatalı tutarları düzeltin.");
                         return;
@@ -1263,7 +1269,7 @@ export default function App() {
                 />
                 <button
                   className="button primary small"
-                  onClick={() => {
+                  onClick={async () => {
                     if (from && to && from > to) {
                       setError("Başlangıç tarihi bitişten sonra olamaz.");
                       return;
@@ -1840,9 +1846,9 @@ export default function App() {
                     <button
                       className="icon-button danger"
                       aria-label={c.name + " kanalını sil"}
-                      onClick={() => {
+                      onClick={async () => {
                         if (
-                          confirm(
+                          await confirm(
                             "Kanal ayarlardan silinsin mi? Geçmiş kayıtlar korunur.",
                           )
                         )
@@ -1907,8 +1913,8 @@ export default function App() {
                     <button
                       className="icon-button danger"
                       aria-label={p.name + " sil"}
-                      onClick={() => {
-                        if (confirm("POS ayarlardan silinsin mi?"))
+                      onClick={async () => {
+                        if (await confirm("POS ayarlardan silinsin mi?"))
                           updateSettings({
                             ...settingsDraft,
                             pos: settingsDraft.pos.filter((x) => x.id !== p.id),
@@ -2015,9 +2021,9 @@ export default function App() {
                       <button
                         className="icon-button danger"
                         aria-label={p.name + " personelini sil"}
-                        onClick={() => {
+                        onClick={async () => {
                           if (
-                            confirm(
+                            await confirm(
                               "Personel kalıcı listeden silinsin mi? Geçmiş günler korunur.",
                             )
                           )
@@ -2093,12 +2099,12 @@ export default function App() {
                     disabled={busy || !api}
                     onClick={() =>
                       run(async () => {
-                        if (!allowLeave()) return;
+                        if (!(await allowLeave())) return;
                         if (
                           settingsDirty &&
-                          !confirm(
+                          !(await confirm(
                             "Kaydedilmemiş ayarlar bırakılıp geri yükleme yapılsın mı?",
-                          )
+                          ))
                         )
                           return;
                         if (api && (await api.restore())) {

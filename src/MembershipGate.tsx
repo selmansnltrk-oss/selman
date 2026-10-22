@@ -1,3 +1,4 @@
+import { useConfirm } from "./ConfirmDialog";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   BookOpen,
@@ -40,6 +41,7 @@ const signedOut: MembershipState = { phase: "unconfigured", access: false };
 const date = (s: string) =>
   new Intl.DateTimeFormat("tr-TR", { dateStyle: "long" }).format(new Date(s));
 export default function MembershipGate({ children }: { children: ReactNode }) {
+  const confirm = useConfirm();
   const [state, setState] = useState<MembershipState>({
       ...signedOut,
       phase: "checking",
@@ -139,9 +141,9 @@ export default function MembershipGate({ children }: { children: ReactNode }) {
             </button>
             <button
               disabled={busy}
-              onClick={() => {
+              onClick={async () => {
                 if (
-                  confirm(
+                  await confirm(
                     "Çıkış yapılsın mı? Kaydedilmemiş günlük girişleri önce kaydedin.",
                   )
                 )

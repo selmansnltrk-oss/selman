@@ -3221,3 +3221,7 @@ nav button:hover {
   align-items: center;
   flex-wrap: wrap;
 }
+
+/* Document-local modal keeps Windows Electron keyboard focus intact. */
+dialog.confirmation-dialog { margin: auto; border: 0; color: inherit; max-height: 85vh; overflow: auto; }
+dialog.confirmation-dialog::backdrop { background: rgba(15, 18, 40, .48); backdrop-filter: blur(4px); }

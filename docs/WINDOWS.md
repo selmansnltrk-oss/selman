@@ -37,3 +37,7 @@ Render Environment ayarları masaüstündeki `.env` dosyasını kendiliğinden d
 ## İşletme türü ve geçmiş kayıtlar
 
 Ayarlar → İşletme türü → Kafe / Restoran (eski Restoran / Kafe seçimi de desteklenir) → Ayarları kaydet. Yeni günlerde yemek platformları görünür; diğer türlerde yeni günler genel satış kanallarıyla başlar. Kaydedilmemiş taslakta tür değişince sıfır tutarlı yemek alanları gizlenir. Tutarı girilmiş alanlar kaybolmaz. Kaydedilmiş günler kendi tür anlık görüntüsünü korur; eski, tür bilgisi olmayan kayıtlar tüm mevcut kanalları gösterir. İşletme türünü kaydetmek geçmiş finans kayıtlarını topluca dönüştürmez.
+
+## Silme sonrası klavye odağı düzeltmesi
+
+Personel/gider/kanal/POS silme ve uygulama içi diğer onaylar artık senkron `window.confirm` yerine belge içinde modal kullanır. Vazgeç/Escape işlemi değiştirmez. Onay kapandığında odak önceki öğeye; silinen öğe artık yoksa kullanılabilir giriş alanına döner. Windows'a özgü gerçek makine testi ayrıca gerekir; otomatik test, personel silme sonrasında fareyle yeniden pencereyi etkinleştirmeden klavyeden yazmayı ve iptal akışlarını kontrol eder. Bu masaüstü değişikliği için güncel main dalından yeni Windows kurulum dosyası oluşturulmalıdır; backend ayarı değişmez.

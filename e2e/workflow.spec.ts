@@ -240,3 +240,66 @@ test("işletme türü kaydedilince yemek kanalları gizlenir ve yeniden gösteri
   await expect(page.getByLabel("Yemeksepeti geliri")).toBeVisible();
   await expect(page.getByLabel("Uber Eats geliri")).toBeVisible();
 });
+
+test("personel silme onayından sonra tekrar yazılır; vazgeçme ve Escape kayıtları korur", async ({
+  page,
+}) => {
+  await page.goto("/");
+  let nativeDialogs = 0;
+  page.on("dialog", async (d) => {
+    nativeDialogs++;
+    await d.dismiss();
+  });
+  const name = page.getByLabel("Yeni personel adı", { exact: true });
+  await name.fill("Ayşe");
+  await page
+    .getByRole("button", { name: "Personel ekle", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Ayşe sil", exact: true }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Vazgeç" })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Ayşe sil", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Ayşe sil", exact: true }).click();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.getByRole("button", { name: "Ayşe sil", exact: true }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Onayla" })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Ayşe sil", exact: true }),
+  ).toHaveCount(0);
+  await expect(name).toBeFocused();
+  await page.keyboard.type("Mehmet");
+  await expect(name).toHaveValue("Mehmet");
+  await page
+    .getByRole("button", { name: "Personel ekle", exact: true })
+    .click();
+  await page.getByLabel("Yemeksepeti geliri").click();
+  await page.keyboard.type("125");
+  await page.getByLabel("Yeni gider açıklaması").click();
+  await page.keyboard.type("Ekmek");
+  await expect(page.getByLabel("Yeni gider açıklaması")).toHaveValue("Ekmek");
+  await page
+    .locator("nav")
+    .getByRole("button", { name: "Ayarlar", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Ayşe personelini sil", exact: true })
+    .click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Onayla" })
+    .click();
+  const business = page.getByLabel("İşletme adı", { exact: true });
+  await business.click();
+  await page.keyboard.press("ControlOrMeta+A");
+  await page.keyboard.type("Yeni işletme");
+  await expect(business).toHaveValue("Yeni işletme");
+  expect(nativeDialogs).toBe(0);
+});
